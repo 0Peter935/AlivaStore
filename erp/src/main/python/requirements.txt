@@ -1,0 +1,17 @@
+# --- Dependencias principales ---
+pandas              # Manejo de datos, lectura de Excel
+openpyxl            # Lector de archivos .xlsx (necesario para pandas)
+sqlalchemy          # Conexión ORM/SQL a bases de datos
+pyodbc              # Driver para conectarte a SQL Server desde Python
+
+# --- Dependencias opcionales pero recomendadas ---
+numpy               # Base para cálculos numéricos, mejora el rendimiento de pandas
+matplotlib          # Gráficas básicas para análisis
+seaborn             # (opcional) Gráficas más bonitas y estadísticas
+
+# --- Opcionales para análisis avanzado ---
+scikit-learn        # Modelos de ML (regresiones, clustering, predicciones)
+jupyter             # Si quieres usar notebooks para pruebas rápidas
+joblib              # Para guardar y cargar modelos de ML
+
+flask
