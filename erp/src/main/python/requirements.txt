@@ -14,4 +14,5 @@ scikit-learn        # Modelos de ML (regresiones, clustering, predicciones)
 jupyter             # Si quieres usar notebooks para pruebas rápidas
 joblib              # Para guardar y cargar modelos de ML
 
+# --- Framework para exponer APIs ---
 flask
