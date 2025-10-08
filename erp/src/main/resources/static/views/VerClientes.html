@@ -1,0 +1,71 @@
+<div class="flex-1 p-6">
+  <h1 class="text-3xl font-bold text-gray-900 mb-8">VER CLIENTES</h1>
+
+  <!-- Search Filters -->
+  <div class="mb-6 flex items-end gap-6">
+    <div class="flex-1">
+      <label class="block text-gray-700 font-medium mb-2">Cliente:</label>
+      <input
+        type="text"
+        class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        placeholder="Buscar cliente..."
+      />
+    </div>
+    <div class="flex-1">
+      <label class="block text-gray-700 font-medium mb-2">Teléfono:</label>
+      <input
+        type="text"
+        class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        placeholder="Buscar teléfono..."
+      />
+    </div>
+    <div class="flex gap-3">
+      <button
+        class="bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-lg shadow-sm transition-colors"
+      >
+        🔍
+      </button>
+      <button
+        class="bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-lg shadow-sm transition-colors"
+      >
+        ✏️
+      </button>
+      <button
+        class="bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg shadow-sm transition-colors"
+      >
+        ⬇️
+      </button>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div
+    class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+  >
+    <table class="w-full">
+      <thead class="bg-gray-200">
+        <tr>
+          <th
+            class="px-6 py-4 text-left text-gray-700 font-semibold border-r border-gray-300"
+          >
+            N°
+          </th>
+          <th
+            class="px-6 py-4 text-left text-gray-700 font-semibold border-r border-gray-300"
+          >
+            Cliente
+          </th>
+          <th
+            class="px-6 py-4 text-left text-gray-700 font-semibold border-r border-gray-300"
+          >
+            Teléfono
+          </th>
+          <th class="px-6 py-4 text-left text-gray-700 font-semibold">
+            Fecha de Registro
+          </th>
+        </tr>
+      </thead>
+      <tbody id="clientesTableBody" class="divide-y divide-gray-200"></tbody>
+    </table>
+  </div>
+</div>

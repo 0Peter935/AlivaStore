@@ -24,22 +24,28 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.microsoft.sqlserver:mssql-jdbc:12.8.1.jre11' // Driver SQL Server
-
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // Dependencias principales
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    
+    // SQL Server Driver (ajusta si usas otra BD)
+    implementation 'com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11'
+
+    // Seguridad (opcional si usas Spring Security)
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
+    // Lombok (para DTO/entidades)
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // DevTools (recarga en caliente de HTML/JS/CSS y reinicio rápido)
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    implementation fileTree(dir: 'src/main/Libs', include: ['*.jar'])
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 }
 
 

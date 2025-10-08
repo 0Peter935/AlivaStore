@@ -1,22 +1,15 @@
 package com.store.erp.Models;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class RolDTO {
+
     private Short idRol;
     private String descripcion;
-
-    public Short getIdRol() {
-        return idRol;
-    }
-
-    public void setIdRol(Short idRol) {
-        this.idRol = idRol;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
+    
 }

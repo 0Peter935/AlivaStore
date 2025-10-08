@@ -14,18 +14,26 @@ public class UsuarioService {
     private UsuarioRepo usuarioRepo;
 
     public List<UsuarioDTO> listarUsuarios() {
-        return usuarioRepo.listar();
+        return usuarioRepo.listarUsuarios();
     }
 
-    public UsuarioDTO buscarUsuarioPorId(Integer id) {
-        return usuarioRepo.buscarPorId(id);
+    public UsuarioDTO login(String usuario, String clave) {
+        return usuarioRepo.login(usuario, clave);
     }
 
-    public void guardarUsuario(UsuarioDTO usuario) {
-        usuarioRepo.guardar(usuario);
+    public UsuarioDTO buscarUsuario(int idUsuario) {
+        return usuarioRepo.obtenerUsuarioPorId(idUsuario);
+    }
+
+    public UsuarioDTO claveUsuario(int idUsuario) {
+        return usuarioRepo.claveUsuario(idUsuario);
     }
 
     public void actualizarUsuario(UsuarioDTO usuario) {
-        usuarioRepo.actualizar(usuario);
+        usuarioRepo.actualizarUsuario(usuario);
+    }
+
+    public void cambiarEstado(int idUsuario, boolean estado) {
+        usuarioRepo.cambiarEstado(idUsuario, estado);
     }
 }

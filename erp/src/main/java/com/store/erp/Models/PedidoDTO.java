@@ -4,46 +4,25 @@ import java.math.BigDecimal;
 
 public class PedidoDTO {
     private Long idPedido;
-    private Integer idVendedor;
-    private Integer idCliente;
-    private Integer idEstadoPedido;
-    private Integer idEmpresaEntrega;
-    private String documento;
-    private Integer idRegalo;
-    private BigDecimal subtotal;
-    private BigDecimal igv;
-    private Integer adelanto;
-    private BigDecimal montoTotal;
-    private String ciudad;
-    private String tipoPago;
-    private String tipoComprobante;
-    private BigDecimal montoCobrado;
-    private String observacion;
+
+    private VendedorDTO vendedor;          
+    private ClienteDTO cliente;            
+    private EstadoPedidoDTO estadoPedido;  
+    private EmpresaEntregaDTO empresaEntrega; 
+    private ProductoRegaloDTO regalo;      
+
+    private String documento;              
+    private BigDecimal subtotal;           
+    private BigDecimal igv;                
+    private Integer adelanto;              
+    private BigDecimal montoTotal;         
+    private String ciudad;                 
+    private String tipoPago;               
+    private String tipoComprobante;        
+    private BigDecimal montoCobrado;       
+    private String observacion;            
 
     public PedidoDTO() {
-    }
-
-    public PedidoDTO(Long idPedido, Integer idVendedor, Integer idCliente, Integer idEstadoPedido,
-            Integer idEmpresaEntrega,
-            String documento, Integer idRegalo, BigDecimal subtotal, BigDecimal igv, Integer adelanto,
-            BigDecimal montoTotal, String ciudad, String tipoPago, String tipoComprobante,
-            BigDecimal montoCobrado, String observacion) {
-        this.idPedido = idPedido;
-        this.idVendedor = idVendedor;
-        this.idCliente = idCliente;
-        this.idEstadoPedido = idEstadoPedido;
-        this.idEmpresaEntrega = idEmpresaEntrega;
-        this.documento = documento;
-        this.idRegalo = idRegalo;
-        this.subtotal = subtotal;
-        this.igv = igv;
-        this.adelanto = adelanto;
-        this.montoTotal = montoTotal;
-        this.ciudad = ciudad;
-        this.tipoPago = tipoPago;
-        this.tipoComprobante = tipoComprobante;
-        this.montoCobrado = montoCobrado;
-        this.observacion = observacion;
     }
 
     public Long getIdPedido() {
@@ -54,36 +33,36 @@ public class PedidoDTO {
         this.idPedido = idPedido;
     }
 
-    public Integer getIdVendedor() {
-        return idVendedor;
+    public VendedorDTO getVendedor() {
+        return vendedor;
     }
 
-    public void setIdVendedor(Integer idVendedor) {
-        this.idVendedor = idVendedor;
+    public void setVendedor(VendedorDTO vendedor) {
+        this.vendedor = vendedor;
     }
 
-    public Integer getIdCliente() {
-        return idCliente;
+    public ClienteDTO getCliente() {
+        return cliente;
     }
 
-    public void setIdCliente(Integer idCliente) {
-        this.idCliente = idCliente;
+    public void setCliente(ClienteDTO cliente) {
+        this.cliente = cliente;
     }
 
-    public Integer getIdEstadoPedido() {
-        return idEstadoPedido;
+    public EstadoPedidoDTO getEstadoPedido() {
+        return estadoPedido;
     }
 
-    public void setIdEstadoPedido(Integer idEstadoPedido) {
-        this.idEstadoPedido = idEstadoPedido;
+    public void setEstadoPedido(EstadoPedidoDTO estadoPedido) {
+        this.estadoPedido = estadoPedido;
     }
 
-    public Integer getIdEmpresaEntrega() {
-        return idEmpresaEntrega;
+    public EmpresaEntregaDTO getEmpresaEntrega() {
+        return empresaEntrega;
     }
 
-    public void setIdEmpresaEntrega(Integer idEmpresaEntrega) {
-        this.idEmpresaEntrega = idEmpresaEntrega;
+    public void setEmpresaEntrega(EmpresaEntregaDTO empresaEntrega) {
+        this.empresaEntrega = empresaEntrega;
     }
 
     public String getDocumento() {
@@ -94,12 +73,12 @@ public class PedidoDTO {
         this.documento = documento;
     }
 
-    public Integer getIdRegalo() {
-        return idRegalo;
+    public ProductoRegaloDTO getRegalo() {
+        return regalo;
     }
 
-    public void setIdRegalo(Integer idRegalo) {
-        this.idRegalo = idRegalo;
+    public void setRegalo(ProductoRegaloDTO regalo) {
+        this.regalo = regalo;
     }
 
     public BigDecimal getSubtotal() {

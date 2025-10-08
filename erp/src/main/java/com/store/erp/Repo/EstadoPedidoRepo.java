@@ -17,7 +17,7 @@ public class EstadoPedidoRepo {
 
     private EstadoPedidoDTO mapRowToEstadoPedido(ResultSet rs, int rowNum) throws SQLException {
         EstadoPedidoDTO estadoPedido = new EstadoPedidoDTO();
-        estadoPedido.setIdPedido(rs.getInt("id_pedido"));
+        estadoPedido.setIdEstado(rs.getInt("id_pedido"));
         estadoPedido.setDescripcion(rs.getString("descripcion"));
 
         return estadoPedido;
@@ -33,13 +33,13 @@ public class EstadoPedidoRepo {
 
     public void guardar(EstadoPedidoDTO estadoPedido) {
         jdbcTemplate.update("EXEC GuardarEstadoPedido ?, ?",
-                estadoPedido.getIdPedido(),
+                estadoPedido.getIdEstado(),
                 estadoPedido.getDescripcion());
     }
 
     public void actualizar(EstadoPedidoDTO estadoPedido) {
         jdbcTemplate.update("EXEC ActualizarEstadoPedido ?, ?",
-                estadoPedido.getIdPedido(),
+                estadoPedido.getIdEstado(),
                 estadoPedido.getDescripcion());
     }
 }

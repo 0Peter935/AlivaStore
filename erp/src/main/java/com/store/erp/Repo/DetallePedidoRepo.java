@@ -32,8 +32,8 @@ public class DetallePedidoRepo {
         return jdbcTemplate.query("EXEC ListarDetallePedidos", this::mapRowToDetallePedido);
     }
 
-    public DetallePedidoDTO buscarPorId(Long id) {
-        return jdbcTemplate.queryForObject("EXEC BuscarDetallePedido ?", this::mapRowToDetallePedido, id);
+    public List<DetallePedidoDTO> buscarPorId(Long id) {
+        return jdbcTemplate.query("EXEC BuscarDetallePedido ?", this::mapRowToDetallePedido, id);
     }
 
     public void guardar(DetallePedidoDTO detallePedido) {

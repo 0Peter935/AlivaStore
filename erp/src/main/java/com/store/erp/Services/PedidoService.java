@@ -20,12 +20,4 @@ public class PedidoService {
     public PedidoDTO buscarPedidoPorId(Long id) {
         return pedidoRepo.buscarPorId(id);
     }
-
-    public void guardarPedido(PedidoDTO pedido) {
-        pedidoRepo.guardar(pedido);
-    }
-
-    public void actualizarPedido(PedidoDTO pedido) {
-        pedidoRepo.actualizar(pedido);
-    }
 }

@@ -15,19 +15,22 @@ public class RolRepo {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private RolDTO mapRowToRol(ResultSet rs, int rowNum) throws SQLException {
-        RolDTO rol = new RolDTO();
-        rol.setIdRol(rs.getShort("id_rol"));
-        rol.setDescripcion(rs.getString("descripcion"));
-
-        return rol;
+    public List<RolDTO> listarRoles() {
+        return jdbcTemplate.query("SP_ROL_LISTAR", this::mapRol);
     }
 
-    public List<RolDTO> listar() {
-        return jdbcTemplate.query("EXEC ListarRoles", this::mapRowToRol);
+    public RolDTO buscarRol(short idRol) {
+        return jdbcTemplate.queryForObject(
+                "exec BuscarRol ?",
+                this::mapRol,
+                idRol
+        );
     }
 
-    public RolDTO buscarPorId(Short id) {
-        return jdbcTemplate.queryForObject("EXEC BuscarRol ?", this::mapRowToRol, id);
+    private RolDTO mapRol(ResultSet rs, int rowNum) throws SQLException {
+        return new RolDTO(
+                rs.getShort("ID_ROL"),
+                rs.getString("DESCRIPCION")
+        );
     }
 }
