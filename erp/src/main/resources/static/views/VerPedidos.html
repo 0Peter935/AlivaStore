@@ -1,0 +1,382 @@
+<div class="flex-1 p-6">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Ver Pedidos</h1>
+
+  <!-- Search Filters -->
+  <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      <div>
+        <label class="block text-gray-700 font-medium mb-2"
+          >Código Pedido:</label
+        >
+        <input
+          type="text"
+          id="codigoPedido"
+          class="w-full px-4 py-2 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          placeholder="Ingrese código"
+        />
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">Cliente:</label>
+        <input
+          type="text"
+          id="cliente"
+          class="w-full px-4 py-2 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          placeholder="Ingrese cliente"
+        />
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">Pagado:</label>
+        <div class="relative">
+          <select
+            id="pagado"
+            class="w-full px-4 py-2 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white"
+          >
+            <option value="">Todos</option>
+            <option value="si">Sí</option>
+            <option value="no">No</option>
+          </select>
+          <i
+            class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"
+          ></i>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button
+          onclick="buscarPedidos()"
+          class="bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg transition-colors"
+        >
+          <i class="fas fa-search"></i>
+        </button>
+        <button
+          onclick="editarPedido()"
+          class="bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg transition-colors"
+        >
+          <i class="fas fa-edit"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-200">
+        <tr>
+          <th
+            class="px-6 py-4 text-left text-gray-700 font-medium border-r border-gray-300"
+          >
+            N°
+          </th>
+          <th
+            class="px-6 py-4 text-left text-gray-700 font-medium border-r border-gray-300"
+          >
+            Código
+          </th>
+          <th
+            class="px-6 py-4 text-left text-gray-700 font-medium border-r border-gray-300"
+          >
+            Cliente
+          </th>
+          <th
+            class="px-6 py-4 text-left text-gray-700 font-medium border-r border-gray-300"
+          >
+            Celular
+          </th>
+          <th
+            class="px-6 py-4 text-left text-gray-700 font-medium border-r border-gray-300"
+          >
+            Ciudad
+          </th>
+          <th
+            class="px-6 py-4 text-left text-gray-700 font-medium border-r border-gray-300"
+          >
+            Pagó
+          </th>
+          <th class="px-6 py-4 text-left text-gray-700 font-medium">
+            Acciones
+          </th>
+        </tr>
+      </thead>
+      <tbody id="pedidosTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div
+  id="detallePedidoModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+>
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-5xl p-8 relative">
+    <button
+      onclick="cerrarDetallePedido()"
+      class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+    >
+      ✖
+    </button>
+
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Detalle del Pedido</h1>
+
+    <div class="flex gap-8 mb-6">
+      <div class="flex-1">
+        <label class="block text-gray-700 font-medium mb-2">Código</label>
+        <input
+          type="text"
+          id="codigo"
+          class="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          placeholder="Ingrese código"
+        />
+      </div>
+      <div class="flex-1">
+        <label class="block text-gray-700 font-medium mb-2">Cliente</label>
+        <input
+          type="text"
+          id="cliente"
+          class="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          placeholder="Ingrese cliente"
+        />
+      </div>
+    </div>
+
+    <div class="overflow-hidden border border-gray-300 rounded-lg mb-6">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-gray-200">
+            <th
+              class="px-4 py-3 text-left font-semibold text-gray-700 border-r border-gray-300"
+            >
+              N°
+            </th>
+            <th
+              class="px-4 py-3 text-left font-semibold text-gray-700 border-r border-gray-300"
+            >
+              Producto
+            </th>
+            <th
+              class="px-4 py-3 text-center font-semibold text-gray-700 border-r border-gray-300"
+            >
+              Cantidad
+            </th>
+            <th
+              class="px-4 py-3 text-center font-semibold text-gray-700 border-r border-gray-300"
+            >
+              Precio
+            </th>
+            <th class="px-4 py-3 text-center font-semibold text-gray-700">
+              Total
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-gray-300">
+            <td class="px-4 py-3 border-r border-gray-300">1</td>
+            <td class="px-4 py-3 border-r border-gray-300">
+              Rodillo color Verde
+            </td>
+            <td class="px-4 py-3 text-center border-r border-gray-300">15</td>
+            <td class="px-4 py-3 text-center border-r border-gray-300">
+              S/. 15.50
+            </td>
+            <td class="px-4 py-3 text-center">S/. 232.50</td>
+          </tr>
+          <tr class="bg-green-200 border-b border-gray-300">
+            <td class="px-4 py-3 border-r border-gray-300">2</td>
+            <td class="px-4 py-3 border-r border-gray-300">Masajeador</td>
+            <td class="px-4 py-3 text-center border-r border-gray-300">1</td>
+            <td class="px-4 py-3 text-center border-r border-gray-300">
+              S/. 0.00
+            </td>
+            <td class="px-4 py-3 text-center">S/. 0.00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="bg-gray-50 px-4 py-4 border-t border-gray-300">
+        <div class="flex justify-end">
+          <div class="text-right">
+            <span class="text-lg font-semibold text-gray-800">Total: </span>
+            <span id="totalGeneral" class="text-lg font-bold text-gray-800"
+              >S/. 232.50</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-4">
+      <button
+        onclick="cerrarDetallePedido()"
+        class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+      >
+        Cancelar
+      </button>
+      <button
+        class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+      >
+        Guardar
+      </button>
+      <button
+        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        Imprimir
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Aprobación Pedido -->
+<div
+  id="aprobacionPedidoModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+>
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl p-8 relative">
+    <!-- Botón cerrar -->
+    <button
+      onclick="cerrarModalAprobacion()"
+      class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+    >
+      ✖
+    </button>
+
+    <!-- Header -->
+    <h1 class="text-2xl font-bold text-gray-900 mb-4">Aprobación de Pedido</h1>
+    <div class="h-px bg-gray-300 mb-6"></div>
+
+    <!-- Estado de pago -->
+    <div class="mb-6 space-y-4">
+      <div class="flex items-center">
+        <input
+          type="radio"
+          id="pago-completado"
+          name="estado-pago"
+          value="completado"
+          class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+        />
+        <label
+          for="pago-completado"
+          class="ml-4 text-lg font-medium text-gray-900"
+        >
+          Pago Completado
+        </label>
+      </div>
+      <div class="flex items-center">
+        <input
+          type="radio"
+          id="pago-faltante"
+          name="estado-pago"
+          value="faltante"
+          class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+        />
+        <label
+          for="pago-faltante"
+          class="ml-4 text-lg font-medium text-gray-900"
+        >
+          Pago Faltante
+        </label>
+      </div>
+    </div>
+
+    <!-- Subir evidencia -->
+    <h2 class="text-lg font-medium text-gray-900 mb-3">
+      Adjuntar Evidencia de Pago:
+    </h2>
+    <div
+      id="dropzone"
+      class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-white hover:border-gray-400 transition-colors cursor-pointer"
+    >
+      <p class="text-gray-500">
+        Arrastre y suelte archivos aquí o haga clic en "Examinar"
+      </p>
+      <button
+        type="button"
+        id="browse-btn"
+        class="mt-3 px-4 py-2 border border-blue-400 text-blue-500 rounded-md hover:bg-blue-50"
+      >
+        Examinar Archivos
+      </button>
+      <input
+        type="file"
+        id="file-input"
+        class="hidden"
+        multiple
+        accept="image/*,.pdf,.doc,.docx"
+      />
+    </div>
+
+    <!-- Lista de archivos -->
+    <div id="selected-files" class="mt-4 space-y-2"></div>
+
+    <!-- Botones -->
+    <div class="flex justify-end gap-4 mt-8">
+      <button
+        onclick="cerrarModalAprobacion()"
+        class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+      >
+        Cancelar
+      </button>
+      <button
+        id="accept-btn"
+        class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+      >
+        Aceptar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- pedido.js -->
+<script>
+  function verDetallePedido(idPedido) {
+    // Llamar a backend para traer datos generales
+    $.ajax({
+      url: `/api/pedidos/${idPedido}`,
+      method: "GET",
+      dataType: "json",
+      success: function (pedido) {
+        // Datos básicos
+        $("#codigo").val(pedido.documento || "");
+        $("#cliente").val(pedido.cliente?.nombreCompleto || "");
+      },
+    });
+
+    // Llamar a backend para traer el detalle
+    $.ajax({
+      url: `/api/pedidos/${idPedido}/detalle`,
+      method: "GET",
+      dataType: "json",
+      success: function (detalles) {
+        const tbody = $("#detallePedidoModal tbody");
+        tbody.empty();
+        let total = 0;
+
+        $.each(detalles, function (i, d) {
+          const subtotal = d.precioUnitario * d.cantidad;
+          total += subtotal;
+
+          tbody.append(`
+          <tr class="border-b border-gray-300">
+            <td class="px-4 py-3 border-r border-gray-300">${i + 1}</td>
+            <td class="px-4 py-3 border-r border-gray-300">${
+              d.productoNombre
+            }</td>
+            <td class="px-4 py-3 text-center border-r border-gray-300">${
+              d.cantidad
+            }</td>
+            <td class="px-4 py-3 text-center border-r border-gray-300">S/. ${d.precioUnitario.toFixed(
+              2
+            )}</td>
+            <td class="px-4 py-3 text-center">S/. ${subtotal.toFixed(2)}</td>
+          </tr>
+        `);
+        });
+
+        $("#totalGeneral").text("S/. " + total.toFixed(2));
+      },
+      error: function () {
+        console.error("Error al cargar detalle de pedido");
+      },
+    });
+
+    // 👉 abrir modal al final
+    $("#detallePedidoModal").removeClass("hidden");
+  }
+</script>

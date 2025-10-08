@@ -1,0 +1,232 @@
+<div class="flex-1 p-6">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Pago Pedido</h1>
+
+  <!-- Tabs -->
+  <div class="mb-6">
+    <div class="flex space-x-4">
+      <button
+        id="tab-pendientes"
+        class="px-4 py-2 font-medium text-gray-700 bg-gray-200 rounded-lg"
+      >
+        Pendientes
+      </button>
+      <button
+        id="tab-pagados"
+        class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+      >
+        Pagados
+      </button>
+    </div>
+  </div>
+
+  <!-- Search Filters -->
+  <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Cliente:</label
+        >
+        <input
+          type="text"
+          placeholder="Buscar cliente..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Origen:</label
+        >
+        <select
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500"
+        >
+          <option>Todos</option>
+          <option>Lima</option>
+          <option>Provincias</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Agencia:</label
+        >
+        <select
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500"
+        >
+          <option>Todas</option>
+          <option>Shalom</option>
+          <option>Olva</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Estado:</label
+        >
+        <select
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500"
+        >
+          <option>Todos</option>
+          <option>Pendiente</option>
+          <option>Procesando</option>
+          <option>Enviado</option>
+          <option>Entregado</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex justify-end space-x-2">
+      <button
+        class="bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-lg"
+      >
+        🔍
+      </button>
+      <button
+        class="bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-lg"
+      >
+        ✏️
+      </button>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-200">
+        <tr>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r"
+          >
+            N°
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r"
+          >
+            Pedido
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r"
+          >
+            Cliente
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r"
+          >
+            Ciudad
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r"
+          >
+            Agencia
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r"
+          >
+            Origen
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r"
+          >
+            Estado
+          </th>
+          <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">
+            Acciones
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-b hover:bg-gray-50">
+          <td class="px-4 py-3 border-r">1</td>
+          <td class="px-4 py-3 border-r">PED-101</td>
+          <td class="px-4 py-3 border-r">Juan Pérez</td>
+          <td class="px-4 py-3 border-r">Lima</td>
+          <td class="px-4 py-3 border-r">Shalom</td>
+          <td class="px-4 py-3 border-r">Lima</td>
+          <td class="px-4 py-3 border-r">
+            <span
+              class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full"
+              >Pendiente</span
+            >
+          </td>
+          <td class="px-4 py-3">
+            <button class="bg-green-500 text-white px-2 py-1 rounded">
+              💲 Pagar
+            </button>
+          </td>
+        </tr>
+        <tr class="border-b hover:bg-gray-50">
+          <td class="px-4 py-3 border-r">2</td>
+          <td class="px-4 py-3 border-r">PED-102</td>
+          <td class="px-4 py-3 border-r">María García</td>
+          <td class="px-4 py-3 border-r">Arequipa</td>
+          <td class="px-4 py-3 border-r">Olva</td>
+          <td class="px-4 py-3 border-r">Provincias</td>
+          <td class="px-4 py-3 border-r">
+            <span
+              class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
+              >Pagado</span
+            >
+          </td>
+          <td class="px-4 py-3">
+            <button class="bg-blue-500 text-white px-2 py-1 rounded">
+              📄 Recibo
+            </button>
+          </td>
+        </tr>
+        <tr class="border-b hover:bg-gray-50">
+          <td class="px-4 py-3 border-r">3</td>
+          <td class="px-4 py-3 border-r">PED-103</td>
+          <td class="px-4 py-3 border-r">Carlos Ramírez</td>
+          <td class="px-4 py-3 border-r">Cusco</td>
+          <td class="px-4 py-3 border-r">Shalom</td>
+          <td class="px-4 py-3 border-r">Provincias</td>
+          <td class="px-4 py-3 border-r">
+            <span
+              class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full"
+              >Pendiente</span
+            >
+          </td>
+          <td class="px-4 py-3">
+            <button class="bg-green-500 text-white px-2 py-1 rounded">
+              💲 Pagar
+            </button>
+          </td>
+        </tr>
+        <tr class="border-b hover:bg-gray-50">
+          <td class="px-4 py-3 border-r">4</td>
+          <td class="px-4 py-3 border-r">PED-104</td>
+          <td class="px-4 py-3 border-r">Ana Torres</td>
+          <td class="px-4 py-3 border-r">Trujillo</td>
+          <td class="px-4 py-3 border-r">Olva</td>
+          <td class="px-4 py-3 border-r">Lima</td>
+          <td class="px-4 py-3 border-r">
+            <span
+              class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
+              >Pagado</span
+            >
+          </td>
+          <td class="px-4 py-3">
+            <button class="bg-blue-500 text-white px-2 py-1 rounded">
+              📄 Recibo
+            </button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 border-r">5</td>
+          <td class="px-4 py-3 border-r">PED-105</td>
+          <td class="px-4 py-3 border-r">Luis Fernández</td>
+          <td class="px-4 py-3 border-r">Piura</td>
+          <td class="px-4 py-3 border-r">Shalom</td>
+          <td class="px-4 py-3 border-r">Provincias</td>
+          <td class="px-4 py-3 border-r">
+            <span
+              class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full"
+              >Pendiente</span
+            >
+          </td>
+          <td class="px-4 py-3">
+            <button class="bg-green-500 text-white px-2 py-1 rounded">
+              💲 Pagar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

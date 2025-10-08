@@ -1,15 +1,15 @@
 package com.store.erp.Models;
 
 public class EstadoPedidoDTO {
-    private Integer idPedido;
+    private Integer idEstado;
     private String descripcion;
 
-    public Integer getIdPedido() {
-        return idPedido;
+    public Integer getIdEstado() {
+        return idEstado;
     }
 
-    public void setIdPedido(Integer idPedido) {
-        this.idPedido = idPedido;
+    public void setIdEstado(Integer idEstado) {
+        this.idEstado = idEstado;
     }
 
     public String getDescripcion() {

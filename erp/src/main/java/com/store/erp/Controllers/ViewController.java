@@ -6,24 +6,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ViewController {
 
-    @GetMapping("/usuarios")
-    public String mostrarUsuarios() {
-        return "Usuarios";
+    @GetMapping("/login")
+    public String mostrarLogin() {
+        return "Login";
     }
 
-    @GetMapping("/usuarios/nuevo")
-    public String nuevoUsuarioView() {
-        return "NuevoUsuario";
-    }
-
-    @GetMapping("/productos")
-    public String mostrarProductos() {
-        return "Productos";
-    }
-
-    @GetMapping("/productos/nuevo")
-    public String nuevoProductoView() {
-        return "NuevoProducto";
+    @GetMapping("/")
+    public String mostrarHome() {
+        return "Home";
     }
 
 }

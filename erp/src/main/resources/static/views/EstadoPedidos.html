@@ -1,0 +1,249 @@
+<div class="flex-1 p-6">
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">Estado Pedido</h1>
+
+  <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Cliente:</label
+        >
+        <input
+          type="text"
+          id="clienteFilter"
+          placeholder="Buscar cliente..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
+      <div class="relative">
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Origen:</label
+        >
+        <select
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option>Todos</option>
+          <option>Lima</option>
+          <option>Provincias</option>
+        </select>
+      </div>
+      <div class="relative">
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Agencia:</label
+        >
+        <select
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option>Todas</option>
+          <option>Shalom</option>
+          <option>Olva</option>
+        </select>
+      </div>
+      <div class="relative">
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Estado:</label
+        >
+        <select
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option>Todos</option>
+          <option>Pendiente</option>
+          <option>En Proceso</option>
+          <option>Enviado</option>
+          <option>Entregado</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="flex justify-end space-x-2">
+      <button
+        class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
+      >
+        🔍
+      </button>
+      <button
+        class="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg transition-colors"
+      >
+        ✏️
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-200">
+        <tr>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r border-gray-300"
+          >
+            N°
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r border-gray-300"
+          >
+            Pedido
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r border-gray-300"
+          >
+            Cliente
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r border-gray-300"
+          >
+            Ciudad
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r border-gray-300"
+          >
+            Agencia
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r border-gray-300"
+          >
+            Origen
+          </th>
+          <th
+            class="px-4 py-3 text-left text-sm font-medium text-gray-700 border-r border-gray-300"
+          >
+            Estado
+          </th>
+          <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">
+            Acciones
+          </th>
+        </tr>
+      </thead>
+      <tbody id="ordersTableBody">
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="px-4 py-3 border-r">1</td>
+          <td class="px-4 py-3 border-r">PED-001</td>
+          <td class="px-4 py-3 border-r">Juan Pérez</td>
+          <td class="px-4 py-3 border-r">Lima</td>
+          <td class="px-4 py-3 border-r">Shalom</td>
+          <td class="px-4 py-3 border-r">Lima</td>
+          <td class="px-4 py-3 border-r">
+            <span
+              class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full"
+              >Pendiente</span
+            >
+          </td>
+          <td class="px-4 py-3">
+            <button
+              class="bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded"
+            >
+              ✏️
+            </button>
+            <button
+              class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+            >
+              📍
+            </button>
+          </td>
+        </tr>
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="px-4 py-3 border-r">2</td>
+          <td class="px-4 py-3 border-r">PED-002</td>
+          <td class="px-4 py-3 border-r">María García</td>
+          <td class="px-4 py-3 border-r">Arequipa</td>
+          <td class="px-4 py-3 border-r">Olva</td>
+          <td class="px-4 py-3 border-r">Provincias</td>
+          <td class="px-4 py-3 border-r">
+            <span
+              class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"
+              >En Proceso</span
+            >
+          </td>
+          <td class="px-4 py-3">
+            <button
+              class="bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded"
+            >
+              ✏️
+            </button>
+            <button
+              class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+            >
+              📍
+            </button>
+          </td>
+        </tr>
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="px-4 py-3 border-r">3</td>
+          <td class="px-4 py-3 border-r">PED-003</td>
+          <td class="px-4 py-3 border-r">Carlos Ramírez</td>
+          <td class="px-4 py-3 border-r">Cusco</td>
+          <td class="px-4 py-3 border-r">Shalom</td>
+          <td class="px-4 py-3 border-r">Provincias</td>
+          <td class="px-4 py-3 border-r">
+            <span
+              class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
+              >Entregado</span
+            >
+          </td>
+          <td class="px-4 py-3">
+            <button
+              class="bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded"
+            >
+              ✏️
+            </button>
+            <button
+              class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+            >
+              📍
+            </button>
+          </td>
+        </tr>
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="px-4 py-3 border-r">4</td>
+          <td class="px-4 py-3 border-r">PED-004</td>
+          <td class="px-4 py-3 border-r">Ana Torres</td>
+          <td class="px-4 py-3 border-r">Trujillo</td>
+          <td class="px-4 py-3 border-r">Olva</td>
+          <td class="px-4 py-3 border-r">Lima</td>
+          <td class="px-4 py-3 border-r">
+            <span
+              class="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full"
+              >Enviado</span
+            >
+          </td>
+          <td class="px-4 py-3">
+            <button
+              class="bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded"
+            >
+              ✏️
+            </button>
+            <button
+              class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+            >
+              📍
+            </button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 border-r">5</td>
+          <td class="px-4 py-3 border-r">PED-005</td>
+          <td class="px-4 py-3 border-r">Luis Fernández</td>
+          <td class="px-4 py-3 border-r">Piura</td>
+          <td class="px-4 py-3 border-r">Shalom</td>
+          <td class="px-4 py-3 border-r">Provincias</td>
+          <td class="px-4 py-3 border-r">
+            <span
+              class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full"
+              >Pendiente</span
+            >
+          </td>
+          <td class="px-4 py-3">
+            <button
+              class="bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded"
+            >
+              ✏️
+            </button>
+            <button
+              class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+            >
+              📍
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

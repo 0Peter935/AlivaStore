@@ -14,13 +14,8 @@ public class RolController {
     @Autowired
     private RolService rolService;
 
-    @GetMapping("/")
+    @GetMapping
     public List<RolDTO> listarRoles() {
         return rolService.listarRoles();
-    }
-
-    @GetMapping("/{id}")
-    public RolDTO buscarRolPorId(@PathVariable Short id) {
-        return rolService.buscarRolPorId(id);
     }
 }

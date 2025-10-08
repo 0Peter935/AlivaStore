@@ -17,7 +17,7 @@ public class DetallePedidoService {
         return detallePedidoRepo.listar();
     }
 
-    public DetallePedidoDTO buscarDetallePedidoPorId(Long id) {
+    public List<DetallePedidoDTO> buscarDetallePedidoPorId(Long id) {
         return detallePedidoRepo.buscarPorId(id);
     }
 

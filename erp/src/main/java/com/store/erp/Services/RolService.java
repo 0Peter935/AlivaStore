@@ -14,10 +14,10 @@ public class RolService {
     private RolRepo rolRepo;
 
     public List<RolDTO> listarRoles() {
-        return rolRepo.listar();
+        return rolRepo.listarRoles();
     }
 
     public RolDTO buscarRolPorId(Short id) {
-        return rolRepo.buscarPorId(id);
+        return rolRepo.buscarRol(id);
     }
 }

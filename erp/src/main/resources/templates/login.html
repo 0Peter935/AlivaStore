@@ -1,147 +1,257 @@
 <!DOCTYPE html>
 <html lang="es" class="h-full">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ALIVA PERU - Iniciar Sesión</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'aliva-purple': '#6366f1',
-                        'aliva-blue': '#3b82f6',
-                        'aliva-light-blue': '#93c5fd',
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="h-full bg-gray-100">
-    <!--  Added main container to center and contain the login -->
+    <script src="/js/tailwind-config.js"></script>
+  </head>
+  <body class="h-full bg-gray-100">
     <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <div class="flex min-h-[600px]">
-                <!-- Left Panel - Login Form -->
-                <div class="flex-1 flex flex-col justify-center px-12 py-12">
-                    <!-- ... existing code ... -->
-                    <!-- Logo -->
-                    <div class="mb-16">
-                        <div class="flex items-center space-x-3">
-                            <div class="flex space-x-1">
-                                <div class="w-6 h-6 bg-cyan-200 rounded"></div>
-                                <div class="flex flex-col space-y-1">
-                                    <div class="w-6 h-3 bg-aliva-purple rounded"></div>
-                                    <div class="w-6 h-3 bg-aliva-blue rounded"></div>
-                                </div>
-                            </div>
-                            <div class="text-black">
-                                <div class="text-xl font-bold">ALIVA</div>
-                                <div class="text-sm font-medium">PERU</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Login Form -->
-                    <div class="max-w-md">
-                        <h1 class="text-4xl font-bold text-black mb-12">INICIAR SESION</h1>
-                        
-                        <!-- User Avatar -->
-                        <div class="flex justify-center mb-12">
-                            <div class="w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                                <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                </svg>
-                            </div>
-                        </div>
-
-                        <!-- Form Fields -->
-                        <form class="space-y-6">
-                            <div>
-                                <label class="block text-lg font-medium text-black mb-3">Usuario:</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="Ingrese su Usuario"
-                                    class="w-full px-6 py-4 bg-gray-50 border-0 rounded-2xl text-gray-500 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-aliva-purple shadow-sm"
-                                >
-                            </div>
-
-                            <div>
-                                <label class="block text-lg font-medium text-black mb-3">Contraseña:</label>
-                                <div class="relative">
-                                    <input 
-                                        type="password" 
-                                        placeholder="Ingrese su Contraseña"
-                                        class="w-full px-6 py-4 bg-gray-50 border-0 rounded-2xl text-gray-500 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-aliva-purple shadow-sm pr-14"
-                                    >
-                                    <button type="button" class="absolute right-4 top-1/2 transform -translate-y-1/2">
-                                        <svg class="w-6 h-6 text-aliva-purple" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <button 
-                                type="submit"
-                                class="w-full bg-aliva-purple hover:bg-purple-700 text-white font-semibold py-4 px-6 rounded-2xl transition duration-200 mt-8"
-                            >
-                                Iniciar Sesión
-                            </button>
-                        </form>
-                    </div>
+      <div
+        class="w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden"
+      >
+        <div class="flex min-h-[600px]">
+          <div class="flex-1 flex flex-col justify-center px-12 py-12">
+            <div class="mb-8">
+              <div class="flex items-center space-x-3">
+                <div class="flex space-x-1">
+                  <div class="w-6 h-6 bg-cyan-200 rounded"></div>
+                  <div class="flex flex-col space-y-1">
+                    <div class="w-6 h-3 bg-aliva-purple rounded"></div>
+                    <div class="w-6 h-3 bg-aliva-blue rounded"></div>
+                  </div>
                 </div>
-
-                <!-- Right Panel - Illustration -->
-                <div class="flex-1 bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 relative overflow-hidden">
-                    <!-- ... existing code ... -->
-                    <!-- Background decorative elements -->
-                    <div class="absolute top-20 right-20 w-32 h-32 bg-white bg-opacity-20 rounded-full"></div>
-                    <div class="absolute top-40 right-40 w-20 h-20 bg-yellow-300 bg-opacity-30 rounded-full"></div>
-                    <div class="absolute bottom-32 left-20 w-24 h-24 bg-cyan-300 bg-opacity-25 rounded-full"></div>
-                    
-                    <!-- Main illustration area -->
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="relative">
-                            <!-- Browser window mockup -->
-                            <div class="bg-white rounded-lg shadow-2xl p-4 mb-8 w-80">
-                                <div class="flex space-x-2 mb-4">
-                                    <div class="w-3 h-3 bg-red-400 rounded-full"></div>
-                                    <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                                    <div class="w-3 h-3 bg-green-400 rounded-full"></div>
-                                </div>
-                                <div class="bg-gray-100 rounded p-4 h-32">
-                                    <!-- Storefront illustration -->
-                                    <div class="grid grid-cols-3 gap-2 h-full">
-                                        <div class="bg-gradient-to-b from-purple-400 to-purple-600 rounded relative">
-                                            <div class="absolute top-1 left-1 bg-green-400 text-xs px-1 rounded text-white">SALE</div>
-                                        </div>
-                                        <div class="bg-gradient-to-b from-blue-400 to-blue-600 rounded relative">
-                                            <div class="absolute top-1 left-1 bg-blue-400 text-xs px-1 rounded text-white">OPEN</div>
-                                        </div>
-                                        <div class="bg-gradient-to-b from-indigo-400 to-indigo-600 rounded"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Floating elements -->
-                            <div class="absolute -top-8 -left-8 w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center">
-                                <div class="w-6 h-6 bg-gray-800 rounded"></div>
-                            </div>
-                            <div class="absolute -top-4 -right-12 w-10 h-10 bg-cyan-300 rounded-full"></div>
-                            <div class="absolute -bottom-6 -left-6 w-8 h-8 bg-yellow-400 rounded"></div>
-                            <div class="absolute -bottom-8 -right-8 w-14 h-14 bg-white rounded-lg shadow-lg"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Bottom platform -->
-                    <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-cyan-400 to-cyan-300"></div>
-                    <div class="absolute bottom-32 left-0 right-0 h-8 bg-gradient-to-r from-indigo-800 to-purple-800"></div>
+                <div class="text-black">
+                  <div class="text-xl font-bold">ALIVA</div>
+                  <div class="text-sm font-medium">PERU</div>
                 </div>
+              </div>
             </div>
+
+            <div class="max-w-md">
+              <h1 class="text-4xl font-bold text-black mb-8">INICIAR SESION</h1>
+
+              <div class="flex justify-center mb-8">
+                <div
+                  class="w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center"
+                >
+                  <svg
+                    class="w-16 h-16 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <form id="loginForm" class="space-y-6">
+                <div>
+                  <label class="block text-lg font-medium text-black mb-3"
+                    >Usuario:</label
+                  >
+                  <input
+                    type="text"
+                    id="usuario"
+                    placeholder="Ingrese su usuario"
+                    class="w-full px-6 py-4 bg-gray-50 border-0 rounded-2xl text-gray-500 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-aliva-purple shadow-sm"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-lg font-medium text-black mb-3"
+                    >Contraseña:</label
+                  >
+                  <div class="relative">
+                    <input
+                      type="password"
+                      id="clave"
+                      placeholder="Ingrese su contraseña"
+                      class="w-full px-6 py-4 bg-gray-50 border-0 rounded-2xl text-gray-500 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-aliva-purple shadow-sm pr-14"
+                      required
+                      aria-describedby="toggle-clave-btn"
+                    />
+
+                    <button
+                      type="button"
+                      id="toggle-clave-btn"
+                      aria-label="Mostrar contraseña"
+                      class="absolute right-4 top-1/2 transform -translate-y-1/2 focus:outline-none"
+                      title="Mostrar contraseña"
+                    >
+                      <i
+                        id="icon-eye-off"
+                        class="fa-solid fa-eye-slash text-aliva-purple"
+                      ></i>
+                      <i
+                        id="icon-eye"
+                        class="fa-solid fa-eye text-aliva-purple hidden"
+                      ></i>
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  class="w-full bg-aliva-purple hover:bg-purple-700 text-white font-semibold py-4 px-6 rounded-2xl transition duration-200 mt-8"
+                >
+                  Iniciar Sesión
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div
+            class="flex-1 bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 relative overflow-hidden"
+          >
+            <div
+              class="absolute top-20 right-20 w-32 h-32 bg-white bg-opacity-20 rounded-full"
+            ></div>
+            <div
+              class="absolute top-40 right-40 w-20 h-20 bg-yellow-300 bg-opacity-30 rounded-full"
+            ></div>
+            <div
+              class="absolute bottom-32 left-20 w-24 h-24 bg-cyan-300 bg-opacity-25 rounded-full"
+            ></div>
+
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="relative">
+                <div class="bg-white rounded-lg shadow-2xl p-4 mb-8 w-80">
+                  <div class="flex space-x-2 mb-4">
+                    <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                    <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                    <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                  </div>
+                  <div class="bg-gray-100 rounded p-4 h-32">
+                    <div class="grid grid-cols-3 gap-2 h-full">
+                      <div
+                        class="bg-gradient-to-b from-purple-400 to-purple-600 rounded relative"
+                      >
+                        <div
+                          class="absolute top-1 left-1 bg-green-400 text-xs px-1 rounded text-white"
+                        >
+                          SALE
+                        </div>
+                      </div>
+                      <div
+                        class="bg-gradient-to-b from-blue-400 to-blue-600 rounded relative"
+                      >
+                        <div
+                          class="absolute top-1 left-1 bg-blue-400 text-xs px-1 rounded text-white"
+                        >
+                          OPEN
+                        </div>
+                      </div>
+                      <div
+                        class="bg-gradient-to-b from-indigo-400 to-indigo-600 rounded"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="absolute -top-8 -left-8 w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center"
+                >
+                  <div class="w-6 h-6 bg-gray-800 rounded"></div>
+                </div>
+                <div
+                  class="absolute -top-4 -right-12 w-10 h-10 bg-cyan-300 rounded-full"
+                ></div>
+                <div
+                  class="absolute -bottom-6 -left-6 w-8 h-8 bg-yellow-400 rounded"
+                ></div>
+                <div
+                  class="absolute -bottom-8 -right-8 w-14 h-14 bg-white rounded-lg shadow-lg"
+                ></div>
+              </div>
+            </div>
+
+            <div
+              class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-cyan-400 to-cyan-300"
+            ></div>
+            <div
+              class="absolute bottom-32 left-0 right-0 h-8 bg-gradient-to-r from-indigo-800 to-purple-800"
+            ></div>
+          </div>
         </div>
+      </div>
     </div>
-</body>
+
+    <script>
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const usuario = document.getElementById("usuario").value;
+          const clave = document.getElementById("clave").value;
+
+          try {
+            const response = await fetch("/api/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ usuario, clave }),
+            });
+
+            if (response.ok) {
+              const usuario = await response.json();
+
+              // Guardar datos en sessionStorage (seguridad)
+              sessionStorage.setItem("usuario", JSON.stringify(usuario));
+
+              // Redirigir a la ruta raíz ("/")
+              window.location.href = "/";
+            } else {
+              const error = await response.json();
+              alert(error.error || "Error en el inicio de sesión");
+            }
+          } catch (err) {
+            console.error("Error en login:", err);
+            alert("No se pudo conectar al servidor.");
+          }
+        });
+    </script>
+
+    <script>
+      (function () {
+        const toggleBtn = document.getElementById("toggle-clave-btn");
+        const input = document.getElementById("clave");
+        const eye = document.getElementById("icon-eye");
+        const eyeOff = document.getElementById("icon-eye-off");
+
+        if (!toggleBtn || !input) return;
+
+        toggleBtn.addEventListener("click", function (e) {
+          // evitar que si el input está dentro de un form el botón lo envíe (por si no usaste type="button")
+          e.preventDefault();
+
+          const isPassword = input.type === "password";
+          input.type = isPassword ? "text" : "password";
+
+          // alternar iconos
+          eye.classList.toggle("hidden", !isPassword);
+          eyeOff.classList.toggle("hidden", isPassword);
+
+          // actualizar atributos accesibles / tooltip
+          const label = isPassword
+            ? "Ocultar contraseña"
+            : "Mostrar contraseña";
+          toggleBtn.setAttribute("aria-label", label);
+          toggleBtn.setAttribute("title", label);
+        });
+
+        // opcional: mantener cursor pointer
+        toggleBtn.style.cursor = "pointer";
+      })();
+    </script>
+  </body>
 </html>

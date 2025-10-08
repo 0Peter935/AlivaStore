@@ -14,7 +14,7 @@ public class ClienteController {
     @Autowired
     private ClienteService clienteService;
 
-    @GetMapping("/")
+    @GetMapping
     public List<ClienteDTO> listarClientes() {
         return clienteService.listarClientes();
     }
@@ -24,7 +24,7 @@ public class ClienteController {
         return clienteService.buscarClientePorId(id);
     }
 
-    @PostMapping("/")
+    @PostMapping
     public void guardarCliente(@RequestBody ClienteDTO cliente) {
         clienteService.guardarCliente(cliente);
     }

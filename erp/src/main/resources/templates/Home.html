@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ALIVA PERÚ - Dashboard</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/tailwind-config.js"></script>
+    <script>
+      const usuario = JSON.parse(sessionStorage.getItem("usuario"));
+      if (!usuario) {
+        window.location.replace("/login");
+      }
+    </script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"
+    />
+  </head>
+  <body class="h-full bg-gray-100">
+    <div class="flex h-full">
+      <div
+        class="w-64 bg-gradient-to-b from-aliva-purple to-aliva-blue text-white flex flex-col"
+      >
+        <div class="p-4 border-b border-white/20">
+          <div class="flex items-center gap-3 mb-4">
+            <button class="p-2 hover:bg-white/10 rounded">
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="flex">
+              <div class="w-4 h-4 bg-cyan-300 rounded-sm"></div>
+              <div class="w-4 h-4 bg-white rounded-sm ml-1"></div>
+            </div>
+            <span class="font-bold text-lg">ALIVA PERÚ</span>
+          </div>
+        </div>
+
+        <nav class="flex-1 p-4">
+          <ul class="space-y-2">
+            <li>
+              <div id="inicio-container" class="rounded-lg">
+                <button
+                  onclick="toggleSubmenu('inicio')"
+                  class="flex items-center justify-between w-full p-3 text-left text-white"
+                >
+                  <div class="flex items-center">
+                    <i class="fas fa-home mr-3"></i>
+                    <span>Inicio</span>
+                  </div>
+                  <i
+                    class="fas fa-chevron-down transition-transform"
+                    id="inicio-arrow"
+                  ></i>
+                </button>
+                <div id="inicio-submenu" class="pl-6 pb-2 hidden">
+                  <a
+                    href="#"
+                    onclick="selectLink('inicio-link')"
+                    id="inicio-link"
+                    class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
+                  >
+                    Dashboard
+                  </a>
+                </div>
+              </div>
+            </li>
+
+            <!-- Reportería -->
+            <li>
+              <div id="reporteria-container" class="rounded-lg">
+                <button
+                  onclick="toggleSubmenu('reporteria')"
+                  class="flex items-center justify-between w-full p-3 text-left text-white"
+                >
+                  <div class="flex items-center">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    <span>Reportería</span>
+                  </div>
+                  <i
+                    class="fas fa-chevron-down transition-transform"
+                    id="reporteria-arrow"
+                  ></i>
+                </button>
+                <div id="reporteria-submenu" class="pl-6 pb-2 hidden">
+                  <a
+                    href="#"
+                    onclick="selectLink('reporteria-link')"
+                    id="reporteria-link"
+                    class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
+                  >
+                    Ver Reportes
+                  </a>
+                </div>
+              </div>
+            </li>
+
+            <!-- Clientes -->
+            <li>
+              <div id="clientes-container" class="rounded-lg">
+                <button
+                  onclick="toggleSubmenu('clientes')"
+                  class="flex items-center justify-between w-full p-3 text-left text-white"
+                >
+                  <div class="flex items-center">
+                    <i class="fas fa-users mr-3"></i>
+                    <span>Clientes</span>
+                  </div>
+                  <i
+                    class="fas fa-chevron-down transition-transform"
+                    id="clientes-arrow"
+                  ></i>
+                </button>
+                <div id="clientes-submenu" class="pl-6 pb-2 hidden">
+                  <a
+                    href="#"
+                    onclick="event.preventDefault(); selectLink('clientes-link'); loadSection('VerClientes')"
+                    id="clientes-link"
+                    class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
+                  >
+                    Ver Clientes
+                  </a>
+                </div>
+              </div>
+            </li>
+
+            <!-- Pedidos -->
+            <li>
+              <div id="pedidos-container" class="rounded-lg">
+                <button
+                  onclick="toggleSubmenu('pedidos')"
+                  class="flex items-center justify-between w-full p-3 text-left text-white"
+                >
+                  <div class="flex items-center">
+                    <i class="fas fa-box mr-3"></i>
+                    <span>Pedidos</span>
+                  </div>
+                  <i
+                    class="fas fa-chevron-down transition-transform"
+                    id="pedidos-arrow"
+                  ></i>
+                </button>
+                <div id="pedidos-submenu" class="pl-6 pb-2 hidden">
+                  <a
+                    href="#"
+                    onclick="event.preventDefault(); selectLink('pedidos-link1'); loadSection('VerPedidos')"
+                    id="pedidos-link1"
+                    class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
+                    >Ver Pedidos</a
+                  >
+                  <a
+                    href="#"
+                    onclick="event.preventDefault(); selectLink('pedidos-link2'); loadSection('EstadoPedidos')"
+                    id="pedidos-link2"
+                    class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
+                    >Estado Pedido</a
+                  >
+                  <a
+                    href="#"
+                    onclick="event.preventDefault(); selectLink('pedidos-link3'); loadSection('PagoPedidos')"
+                    id="pedidos-link3"
+                    class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
+                    >Pago Pedidos</a
+                  >
+                </div>
+              </div>
+            </li>
+
+            <!-- Almacén -->
+            <li>
+              <div id="almacen-container" class="rounded-lg">
+                <button
+                  onclick="toggleSubmenu('almacen')"
+                  class="flex items-center justify-between w-full p-3 text-left text-white"
+                >
+                  <div class="flex items-center">
+                    <i class="fas fa-warehouse mr-3"></i>
+                    <span>Almacén</span>
+                  </div>
+                  <i
+                    class="fas fa-chevron-down transition-transform"
+                    id="almacen-arrow"
+                  ></i>
+                </button>
+                <div id="almacen-submenu" class="pl-6 pb-2 hidden">
+                  <a
+                    href="#"
+                    onclick="selectLink('almacen-link')"
+                    id="almacen-link"
+                    class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
+                    >Gestión de Stock</a
+                  >
+                </div>
+              </div>
+            </li>
+
+            <!-- Usuarios -->
+            <li>
+              <div id="usuarios-container" class="rounded-lg">
+                <button
+                  onclick="toggleSubmenu('usuarios')"
+                  class="flex items-center justify-between w-full p-3 text-left text-white"
+                >
+                  <div class="flex items-center">
+                    <i class="fas fa-user-shield mr-3"></i>
+                    <span>Usuarios</span>
+                  </div>
+                  <i
+                    class="fas fa-chevron-down transition-transform"
+                    id="usuarios-arrow"
+                  ></i>
+                </button>
+                <div id="usuarios-submenu" class="pl-6 pb-2 hidden">
+                  <a
+                    href="#"
+                    onclick="event.preventDefault(); selectLink('usuarios-link'); loadSection('ListaUsuarios')"
+                    id="usuarios-link"
+                    class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
+                    >Ver Usuarios</a
+                  >
+                </div>
+              </div>
+            </li>
+
+            <!-- Configuración -->
+            <li>
+              <div id="configuracion-container" class="rounded-lg">
+                <button
+                  onclick="toggleSubmenu('configuracion')"
+                  class="flex items-center justify-between w-full p-3 text-left text-white"
+                >
+                  <div class="flex items-center">
+                    <i class="fas fa-cog mr-3"></i>
+                    <span>Configuración</span>
+                  </div>
+                  <i
+                    class="fas fa-chevron-down transition-transform"
+                    id="configuracion-arrow"
+                  ></i>
+                </button>
+                <div id="configuracion-submenu" class="pl-6 pb-2 hidden">
+                  <a
+                    href="#"
+                    onclick="selectLink('configuracion-link')"
+                    id="configuracion-link"
+                    class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
+                    >Preferencias</a
+                  >
+                </div>
+              </div>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="flex-1 flex flex-col">
+        <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <span id="userRol" class="text-gray-500">Rol</span>
+            </div>
+
+            <div class="relative">
+              <button
+                class="flex items-center gap-2 text-gray-700 hover:text-gray-900"
+                onclick="toggleDropdown()"
+              >
+                <span id="userNombre">Usuario</span>
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </button>
+
+              <div
+                id="userDropdown"
+                class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-10"
+              >
+                <a
+                  data-modal-open="perfilModal"
+                  class="block px-4 py-2 text-gray-700 hover:bg-gray-50"
+                  >Perfil</a
+                >
+                <a
+                  data-modal-open="changePasswordModal"
+                  class="block px-4 py-2 text-gray-700 hover:bg-gray-50"
+                  >Cambiar Contraseña</a
+                >
+                <hr class="my-1 border-gray-200" />
+                <a
+                  href="#"
+                  class="block px-4 py-2 text-gray-700 hover:bg-gray-50"
+                  >Cerrar Sesión</a
+                >
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main id="main-content" class="flex-1 p-6"></main>
+
+        <div
+          id="perfilModal"
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+        >
+          <div
+            class="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto"
+          >
+            <div class="flex items-center justify-between p-6 border-b">
+              <h2 class="text-2xl font-bold text-gray-900">Mi Perfil</h2>
+              <button
+                data-modal-close="perfilModal"
+                class="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div class="p-6">
+              <form id="profileForm" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Nombres Completos:</label
+                    >
+                    <input
+                      type="text"
+                      id="nombresInput"
+                      placeholder="Ingrese su nombre"
+                      class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Apellido Paterno:</label
+                    >
+                    <input
+                      type="text"
+                      id="apPaternoInput"
+                      placeholder="Ingrese su apellido paterno"
+                      class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Apellido Materno:</label
+                    >
+                    <input
+                      type="text"
+                      id="apMaternoInput"
+                      placeholder="Ingrese su apellido materno"
+                      class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Correo Electrónico:</label
+                    >
+                    <input
+                      type="email"
+                      id="correoInput"
+                      placeholder="Ingrese su correo"
+                      class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Teléfono:</label
+                    >
+                    <input
+                      type="tel"
+                      id="telefonoInput"
+                      placeholder="Ingrese su teléfono"
+                      class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+                    />
+                  </div>
+                  <div></div>
+                </div>
+
+                <hr class="border-gray-200" />
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Usuario:</label
+                    >
+                    <input
+                      type="text"
+                      id="usuarioInput"
+                      class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+                      disabled
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Contraseña:</label
+                    >
+                    <div class="relative">
+                      <input
+                        type="password"
+                        id="passwordInput"
+                        class="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+                        disabled
+                      />
+                      <button
+                        type="button"
+                        id="togglePassword"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-aliva-purple hover:text-aliva-blue transition-colors"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Rol:</label
+                    >
+                    <input
+                      type="text"
+                      id="rolInput"
+                      class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+                      disabled
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Fecha de Registro:</label
+                    >
+                    <input
+                      type="text"
+                      id="fechaRegistroInput"
+                      class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+                      disabled
+                    />
+                  </div>
+                </div>
+
+                <div class="flex justify-end gap-4 pt-6 border-t">
+                  <button
+                    data-modal-close="perfilModal"
+                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    class="px-6 py-2 bg-aliva-purple hover:bg-aliva-blue text-white rounded-lg transition-colors"
+                  >
+                    Guardar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="changePasswordModal"
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+        >
+          <div
+            class="bg-white rounded-lg shadow-2xl w-full max-w-md mx-4 p-6 relative"
+          >
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-2xl font-bold text-gray-900">
+                Cambiar Contraseña
+              </h2>
+              <button
+                data-modal-close="changePasswordModal"
+                class="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <form id="changePasswordForm" class="space-y-6">
+              <div>
+                <label
+                  for="newPassword"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                  >Contraseña Nueva:</label
+                >
+                <div class="relative">
+                  <input
+                    type="password"
+                    id="newPassword"
+                    name="newPassword"
+                    placeholder=""
+                    class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+                  />
+                  <button
+                    type="button"
+                    onclick="togglePassword('newPassword', 'eyeIcon1')"
+                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-aliva-purple hover:text-aliva-blue transition-colors"
+                  >
+                    <svg
+                      id="eyeIcon1"
+                      class="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                      <path
+                        fill-rule="evenodd"
+                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  for="confirmPassword"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                  >Confirmar Contraseña:</label
+                >
+                <div class="relative">
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    placeholder=""
+                    class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+                  />
+                  <button
+                    type="button"
+                    onclick="togglePassword('confirmPassword', 'eyeIcon2')"
+                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-aliva-purple hover:text-aliva-blue transition-colors"
+                  >
+                    <svg
+                      id="eyeIcon2"
+                      class="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                      <path
+                        fill-rule="evenodd"
+                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-end gap-4 pt-4 border-t">
+                <button
+                  data-modal-close="changePasswordModal"
+                  class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  class="px-6 py-2 bg-aliva-purple hover:bg-aliva-blue text-white rounded-lg transition-colors"
+                >
+                  Guardar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/ag-grid-community@31.3.0/dist/ag-grid-community.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      function toggleSubmenu(id) {
+        const allSubmenus = document.querySelectorAll("[id$='-submenu']");
+        const allArrows = document.querySelectorAll("[id$='-arrow']");
+        const allContainers = document.querySelectorAll("[id$='-container']");
+
+        // Ocultar todos los submenús y resetear contenedores
+        allSubmenus.forEach((menu) => menu.classList.add("hidden"));
+        allArrows.forEach((arrow) => arrow.classList.remove("rotate-180"));
+        allContainers.forEach((container) =>
+          container.classList.remove("bg-white/20")
+        );
+
+        // Mostrar el submenú seleccionado y marcar su contenedor
+        const submenu = document.getElementById(id + "-submenu");
+        const arrow = document.getElementById(id + "-arrow");
+        const container = document.getElementById(id + "-container");
+
+        if (submenu) submenu.classList.toggle("hidden");
+        if (arrow) arrow.classList.toggle("rotate-180");
+        if (container) container.classList.toggle("bg-white/20");
+      }
+
+      function selectLink(id) {
+        const allLinks = document.querySelectorAll(
+          "[id$='-link'], [id^='pedidos-link']"
+        );
+        allLinks.forEach((link) => link.classList.remove("bg-white/30"));
+
+        const selected = document.getElementById(id);
+        if (selected) selected.classList.add("bg-white/30");
+      }
+    </script>
+
+    <script>
+      function toggleSubmenu(id) {
+        const allSubmenus = document.querySelectorAll("[id$='-submenu']");
+        const allArrows = document.querySelectorAll("[id$='-arrow']");
+        const allContainers = document.querySelectorAll("[id$='-container']");
+
+        allSubmenus.forEach((menu) => {
+          if (menu.id === id + "-submenu") {
+            menu.classList.toggle("hidden");
+          } else {
+            menu.classList.add("hidden");
+          }
+        });
+
+        allArrows.forEach((arrow) => {
+          if (arrow.id === id + "-arrow") {
+            arrow.classList.toggle("rotate-180");
+          } else {
+            arrow.classList.remove("rotate-180");
+          }
+        });
+
+        allContainers.forEach((container) => {
+          if (container.id === id + "-container") {
+            container.classList.toggle("bg-white/20");
+          } else {
+            container.classList.remove("bg-white/20");
+          }
+        });
+      }
+    </script>
+
+    <script>
+      function toggleDropdown() {
+        const dropdown = document.getElementById("userDropdown");
+        dropdown.classList.toggle("hidden");
+      }
+
+      // Cerrar sesión
+      function logout() {
+        sessionStorage.removeItem("usuario"); // Borrar datos de sesión
+        window.location.href = "/login"; // Redirigir al login
+      }
+
+      // Detectar clic en "Cerrar Sesión"
+      document.addEventListener("DOMContentLoaded", () => {
+        document
+          .querySelector("#userDropdown a[href='#']")
+          .addEventListener("click", (e) => {
+            e.preventDefault();
+            logout();
+          });
+      });
+
+      // Cerrar el dropdown si se hace clic fuera
+      document.addEventListener("click", function (e) {
+        const button = document.querySelector(
+          "button[onclick='toggleDropdown()']"
+        );
+        const dropdown = document.getElementById("userDropdown");
+        if (!button.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.classList.add("hidden");
+        }
+      });
+    </script>
+
+    <script>
+      async function loadSection(section) {
+        try {
+          // Guardar la vista actual
+          localStorage.setItem("currentView", section);
+
+          // 🧩 1️⃣ Cargar el HTML
+          const response = await fetch("views/" + section + ".html");
+          const content = await response.text();
+          document.getElementById("main-content").innerHTML = content;
+
+          // 🧩 2️⃣ Cargar el CSS correspondiente
+          const cssUrl = "css/" + section + ".css";
+
+          // Eliminar CSS anterior si existe
+          const oldLink = document.getElementById("dynamic-section-style");
+          if (oldLink) oldLink.remove();
+
+          // Crear nuevo <link> para el CSS
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = cssUrl;
+          link.id = "dynamic-section-style";
+
+          // Agregarlo al <head>
+          document.head.appendChild(link);
+
+          // 🧩 3️⃣ Cargar el JS correspondiente
+          const scriptUrl = "js/" + section + ".js";
+
+          // Eliminar script anterior si existe
+          const oldScript = document.getElementById("dynamic-section-script");
+          if (oldScript) oldScript.remove();
+
+          // Crear nuevo <script>
+          const script = document.createElement("script");
+          script.src = scriptUrl;
+          script.id = "dynamic-section-script";
+          document.body.appendChild(script);
+
+          // 🧩 4️⃣ Esperar a que cargue el script y luego ejecutar su init
+          script.onload = () => {
+            const initFunctionName =
+              "init" + section.charAt(0).toUpperCase() + section.slice(1);
+
+            if (typeof window[initFunctionName] === "function") {
+              window[initFunctionName]();
+            }
+          };
+        } catch (error) {
+          console.error("Error al cargar la sección:", error);
+          document.getElementById("main-content").innerHTML =
+            "<p class='text-red-500'>Error al cargar la sección</p>";
+        }
+      }
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const usuario = JSON.parse(sessionStorage.getItem("usuario"));
+
+        const nombreCompleto = `${usuario.nombre} ${usuario.apPaterno} ${usuario.apMaterno}`;
+        document.getElementById("userNombre").textContent = nombreCompleto;
+        document.getElementById("userRol").textContent = usuario.rol
+          ? usuario.rol.descripcion
+          : "Sin rol asignado";
+
+        // 👉 Formulario (rellenar inputs)
+        document.getElementById("nombresInput").value = usuario.nombre || "";
+        document.getElementById("apPaternoInput").value =
+          usuario.apPaterno || "";
+        document.getElementById("apMaternoInput").value =
+          usuario.apMaterno || "";
+        document.getElementById("correoInput").value = usuario.correo || "";
+        document.getElementById("telefonoInput").value = usuario.telefono || "";
+        document.getElementById("usuarioInput").value = usuario.usuario || "";
+        document.getElementById("passwordInput").value = usuario.clave || "";
+        document.getElementById("rolInput").value = usuario.rol
+          ? usuario.rol.descripcion
+          : "";
+        document.getElementById("fechaRegistroInput").value =
+          usuario.fechaRegistro || "";
+
+        const lastView = localStorage.getItem("currentView");
+        if (lastView) {
+          loadSection(lastView);
+        } else {
+          loadSection("");
+        }
+      });
+    </script>
+  </body>
+</html>
