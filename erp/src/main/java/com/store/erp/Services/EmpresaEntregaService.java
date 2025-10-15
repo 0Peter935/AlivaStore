@@ -1,9 +1,10 @@
 package com.store.erp.Services;
 
-import com.store.erp.Models.EmpresaEntregaDTO;
-import com.store.erp.Repo.EmpresaEntregaRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.store.erp.Models.EmpresaEntregaDTO;
+import com.store.erp.Repo.EmpresaEntregaRepo;
 
 import java.util.List;
 
@@ -11,21 +12,13 @@ import java.util.List;
 public class EmpresaEntregaService {
 
     @Autowired
-    private EmpresaEntregaRepo empresaEntregaRepo;
+    private EmpresaEntregaRepo empresaRepo;
 
-    public List<EmpresaEntregaDTO> listarEmpresaEntrega() {
-        return empresaEntregaRepo.listar();
+    public List<EmpresaEntregaDTO> listarEmpresas() {
+        return empresaRepo.listarEmpresas();
     }
 
-    public EmpresaEntregaDTO buscarEmpresaEntregaPorId(Integer id) {
-        return empresaEntregaRepo.buscarPorId(id);
-    }
-
-    public void guardarEmpresaEntrega(EmpresaEntregaDTO empresaEntrega) {
-        empresaEntregaRepo.guardar(empresaEntrega);
-    }
-
-    public void actualizarEmpresaEntrega(EmpresaEntregaDTO empresaEntrega) {
-        empresaEntregaRepo.actualizar(empresaEntrega);
+    public EmpresaEntregaDTO buscarPorId(int idEmpresaEntrega) {
+        return empresaRepo.buscarPorId(idEmpresaEntrega);
     }
 }

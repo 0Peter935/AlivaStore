@@ -16,8 +16,4 @@ public class RolService {
     public List<RolDTO> listarRoles() {
         return rolRepo.listarRoles();
     }
-
-    public RolDTO buscarRolPorId(Short id) {
-        return rolRepo.buscarRol(id);
-    }
 }

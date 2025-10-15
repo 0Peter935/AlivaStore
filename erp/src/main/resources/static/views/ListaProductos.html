@@ -1,0 +1,213 @@
+<div class="flex-1 p-6">
+  <h1 class="text-3xl font-bold text-gray-900 mb-8">Lista de Productos</h1>
+
+  <div class="mb-6 flex items-end gap-6">
+    <div class="flex-1 relative group">
+      <div
+        class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+      >
+        <i
+          class="fa-solid fa-magnifying-glass text-gray-300 group-hover:text-aliva-purple focus-within:text-aliva-purple"
+        ></i>
+      </div>
+      <input
+        type="text"
+        id="searchBox"
+        placeholder="Buscar en cualquier columna..."
+        class="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-blue focus:border-transparent"
+      />
+    </div>
+
+    <div class="flex gap-3">
+      <button
+        onclick="abrirModalNuevoProducto()"
+        class="bg-aliva-blue ring-2 ring-aliva-blue hover:bg-white text-white p-3 rounded-lg shadow-sm transition-colors group"
+      >
+        <i class="fa-solid fa-square-plus group-hover:text-aliva-blue"></i>
+      </button>
+
+      <button
+        class="bg-aliva-blue ring-2 ring-aliva-blue hover:bg-white text-white p-3 rounded-lg shadow-sm transition-colors group"
+      >
+        <i class="fa-solid fa-download group-hover:text-aliva-blue"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div
+    class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+  >
+    <div
+      id="productosGrid"
+      class="ag-theme-alpine"
+      style="height: 440px; width: 100%"
+    ></div>
+  </div>
+</div>
+
+<!-- Modal de edición de stock -->
+<div
+  id="modalEditarStock"
+  class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+>
+  <div
+    class="bg-white rounded-lg shadow-xl w-[600px] max-h-[80vh] overflow-y-auto p-6 relative"
+  >
+    <div
+      id="infoProductoStock"
+      class="bg-blue-50 border border-blue-200 text-blue-900 rounded-md px-4 py-2 mb-3 text-sm font-medium"
+    >
+      <i class="fa-solid fa-box mr-1"></i>
+      Producto seleccionado:
+      <span id="productoDescripcion" class="font-semibold">—</span>
+    </div>
+
+    <h2 class="text-xl font-bold text-gray-800 mb-4">
+      Editar stock por almacén
+    </h2>
+
+    <input type="hidden" id="idProductoStock" />
+
+    <!-- Contenedor de filas dinámicas -->
+    <div id="stockContainer" class="space-y-3 mb-4"></div>
+
+    <!-- Botón para agregar nueva fila -->
+    <button
+      id="btnAgregarStock"
+      class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-all"
+    >
+      <i class="fa-solid fa-plus mr-1"></i> Agregar nuevo almacén
+    </button>
+
+    <div class="flex justify-end mt-6 gap-3">
+      <button
+        onclick="cerrarModalStock()"
+        class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all"
+      >
+        Cancelar
+      </button>
+      <button
+        onclick="guardarCambiosStock()"
+        class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition-all"
+      >
+        Guardar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Agregar nuevo producto -->
+<div
+  id="modalNuevoProducto"
+  class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+>
+  <div
+    class="bg-white rounded-lg shadow-xl w-[600px] max-h-[90vh] overflow-y-auto p-6 relative"
+  >
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Agregar nuevo producto</h2>
+
+    <form id="formNuevoProducto" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Código</label>
+        <input
+          type="text"
+          id="npCodProducto"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          required
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700"
+          >Descripción</label
+        >
+        <textarea
+          id="npDescProducto"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          rows="2"
+          required
+        ></textarea>
+      </div>
+
+      <div class="flex gap-4">
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-gray-700"
+            >Precio (S/)</label
+          >
+          <input
+            type="number"
+            id="npPrecio"
+            step="0.01"
+            min="0"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            required
+          />
+        </div>
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-gray-700">Stock</label>
+          <input
+            type="number"
+            id="npStock"
+            step="1"
+            min="0"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="flex gap-4">
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-gray-700"
+            >Imagen (URL)</label
+          >
+          <input
+            type="text"
+            id="npImagen"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            placeholder="https://..."
+          />
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <label class="flex items-center gap-2">
+          <input type="checkbox" id="npRegalo" class="w-4 h-4 text-blue-500" />
+          <span class="text-sm text-gray-700">¿Es producto de regalo?</span>
+        </label>
+        <label class="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="npEstado"
+            class="w-4 h-4 text-blue-500"
+            checked
+          />
+          <span class="text-sm text-gray-700">Activo</span>
+        </label>
+      </div>
+    </form>
+
+    <div class="flex justify-end mt-6 gap-3">
+      <button
+        onclick="cerrarModalNuevoProducto()"
+        class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all"
+      >
+        Cancelar
+      </button>
+      <button
+        onclick="guardarNuevoProducto()"
+        class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition-all"
+      >
+        Guardar
+      </button>
+    </div>
+
+    <button
+      onclick="cerrarModalNuevoProducto()"
+      class="absolute top-3 right-4 text-gray-500 hover:text-gray-800"
+    >
+      <i class="fa-solid fa-xmark text-lg"></i>
+    </button>
+  </div>
+</div>

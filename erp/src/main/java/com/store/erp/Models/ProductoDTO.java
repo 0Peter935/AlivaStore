@@ -1,73 +1,27 @@
 package com.store.erp.Models;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductoDTO {
-    private Long idProducto;
+
+    private int idProducto;
     private String codProducto;
     private String descProducto;
+    private int stock;
+    private Double precio;
     private String imagen;
-    private LocalDateTime fechaRegistro;
+    private Boolean regalo;
     private Boolean estado;
+    private LocalDate fechaRegistro;
 
-    public ProductoDTO() {
-    }
+    private List<AlmacenStockDTO> almacenStock;
 
-    public ProductoDTO(Long idProducto, String codProducto, String descProducto, String imagen,
-            LocalDateTime fechaRegistro, Boolean estado) {
-        this.idProducto = idProducto;
-        this.codProducto = codProducto;
-        this.descProducto = descProducto;
-        this.imagen = imagen;
-        this.fechaRegistro = fechaRegistro;
-        this.estado = estado;
-    }
-
-    public Long getIdProducto() {
-        return idProducto;
-    }
-
-    public void setIdProducto(Long idProducto) {
-        this.idProducto = idProducto;
-    }
-
-    public String getCodProducto() {
-        return codProducto;
-    }
-
-    public void setCodProducto(String codProducto) {
-        this.codProducto = codProducto;
-    }
-
-    public String getDescProducto() {
-        return descProducto;
-    }
-
-    public void setDescProducto(String descProducto) {
-        this.descProducto = descProducto;
-    }
-
-    public String getImagen() {
-        return imagen;
-    }
-
-    public void setImagen(String imagen) {
-        this.imagen = imagen;
-    }
-
-    public LocalDateTime getFechaRegistro() {
-        return fechaRegistro;
-    }
-
-    public void setFechaRegistro(LocalDateTime fechaRegistro) {
-        this.fechaRegistro = fechaRegistro;
-    }
-
-    public Boolean getEstado() {
-        return estado;
-    }
-
-    public void setEstado(Boolean estado) {
-        this.estado = estado;
-    }
 }

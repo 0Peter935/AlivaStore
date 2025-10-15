@@ -49,6 +49,13 @@ public class UsuarioController {
         }
     }
 
+    @PostMapping("/registrar")
+    public ResponseEntity<String> registrarUsuario(@RequestBody UsuarioDTO usuario) {
+        usuarioService.registrarUsuario(usuario);
+        return ResponseEntity.ok("Usuario registrado correctamente");
+    }
+
+
     @PutMapping("/{id}/actualizar")
     public ResponseEntity<String> actualizarUsuario(
             @PathVariable("id") int id,

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RolDTO {
 
-    private Short idRol;
+    private int idRol;
     private String descripcion;
-    
+
 }

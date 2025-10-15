@@ -1,6 +1,5 @@
 package com.store.erp.Models;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EstadoPedidoDTO {
+public class ZonaEmpresaEntregaDTO {
 
-    private int idEstadoPedido;
+    private int id;
     private String descripcion;
 
 }

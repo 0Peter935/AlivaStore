@@ -1,9 +1,10 @@
 package com.store.erp.Services;
 
-import com.store.erp.Models.ProductoDTO;
-import com.store.erp.Repo.ProductoRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.store.erp.Models.ProductoDTO;
+import com.store.erp.Repo.ProductoRepo;
 
 import java.util.List;
 
@@ -14,18 +15,18 @@ public class ProductoService {
     private ProductoRepo productoRepo;
 
     public List<ProductoDTO> listarProductos() {
-        return productoRepo.listar();
+        return productoRepo.listarProductos();
     }
 
-    public ProductoDTO buscarProductoPorId(Long id) {
-        return productoRepo.buscarPorId(id);
+    public void registrarProducto(ProductoDTO producto) {
+        productoRepo.registrarProducto(producto);
     }
 
-    public void guardarProducto(ProductoDTO producto) {
-        productoRepo.guardar(producto);
+    public void actualizarRegalo(int idProducto, boolean regalo) {
+        productoRepo.actualizarRegalo(idProducto, regalo);
     }
 
-    public void actualizarProducto(ProductoDTO producto) {
-        productoRepo.actualizar(producto);
+    public void cambiarEstado(int idProducto, boolean estado) {
+        productoRepo.cambiarEstado(idProducto, estado);
     }
 }

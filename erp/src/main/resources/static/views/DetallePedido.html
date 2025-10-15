@@ -1,0 +1,70 @@
+<div id="detallePedidoView" class="p-6 space-y-8">
+  <!-- 🔹 Sección 1: Datos del cliente -->
+  <section class="bg-white shadow-md rounded-xl p-4">
+    <h2 class="text-lg font-bold text-gray-700 mb-3">Datos del cliente</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+      <div><strong>Nombre:</strong> <span id="clienteNombre">—</span></div>
+      <div><strong>Teléfono:</strong> <span id="clienteTelefono">—</span></div>
+      <div><strong>Correo:</strong> <span id="clienteCorreo">—</span></div>
+    </div>
+  </section>
+
+  <!-- 🔹 Sección 2: Datos del pedido -->
+  <section class="bg-white shadow-md rounded-xl p-4">
+    <h2 class="text-lg font-bold text-gray-700 mb-3">Datos del pedido</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+      <div><strong>Documento:</strong> <span id="pedidoDocumento">—</span></div>
+      <div><strong>Ciudad:</strong> <span id="pedidoCiudad">—</span></div>
+      <div><strong>Tipo de Pago:</strong> <span id="pedidoPago">—</span></div>
+      <div>
+        <strong>Comprobante:</strong> <span id="pedidoComprobante">—</span>
+      </div>
+      <div><strong>Estado:</strong> <span id="pedidoEstado">—</span></div>
+      <div>
+        <strong>Fecha Registro:</strong> <span id="pedidoFecha">—</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 🔹 Sección 3: Detalles (AG Grid) -->
+  <section class="bg-white shadow-md rounded-xl p-4">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-bold text-gray-700">Detalles del pedido</h2>
+      <div class="space-x-2">
+        <button
+          id="btnAgregarProducto"
+          class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+        >
+          <i class="fa-solid fa-plus"></i> Agregar producto
+        </button>
+        <button
+          id="btnActualizar"
+          class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+        >
+          <i class="fa-solid fa-arrows-rotate"></i> Actualizar
+        </button>
+      </div>
+    </div>
+    <div
+      id="detallePedidoGrid"
+      class="ag-theme-alpine"
+      style="height: 400px"
+    ></div>
+  </section>
+
+  <!-- 🔹 Sección 4: Totales financieros -->
+  <section class="bg-white shadow-md rounded-xl p-4">
+    <h2 class="text-lg font-bold text-gray-700 mb-3">Resumen financiero</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+      <div><strong>Subtotal:</strong> S/ <span id="subtotal">0.00</span></div>
+      <div><strong>IGV:</strong> S/ <span id="igv">0.00</span></div>
+      <div><strong>Adelanto:</strong> S/ <span id="adelanto">0.00</span></div>
+      <div>
+        <strong>Total:</strong>
+        <span class="text-green-700 font-bold"
+          >S/ <span id="total">0.00</span></span
+        >
+      </div>
+    </div>
+  </section>
+</div>

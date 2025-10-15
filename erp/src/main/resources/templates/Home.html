@@ -161,7 +161,7 @@
                 <div id="pedidos-submenu" class="pl-6 pb-2 hidden">
                   <a
                     href="#"
-                    onclick="event.preventDefault(); selectLink('pedidos-link1'); loadSection('VerPedidos')"
+                    onclick="event.preventDefault(); selectLink('pedidos-link1'); loadSection('ListaPedidos')"
                     id="pedidos-link1"
                     class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
                     >Ver Pedidos</a
@@ -184,29 +184,29 @@
               </div>
             </li>
 
-            <!-- Almacén -->
+            <!-- Productos -->
             <li>
-              <div id="almacen-container" class="rounded-lg">
+              <div id="productos-container" class="rounded-lg">
                 <button
-                  onclick="toggleSubmenu('almacen')"
+                  onclick="toggleSubmenu('productos')"
                   class="flex items-center justify-between w-full p-3 text-left text-white"
                 >
                   <div class="flex items-center">
                     <i class="fas fa-warehouse mr-3"></i>
-                    <span>Almacén</span>
+                    <span>Productos</span>
                   </div>
                   <i
                     class="fas fa-chevron-down transition-transform"
-                    id="almacen-arrow"
+                    id="productos-arrow"
                   ></i>
                 </button>
-                <div id="almacen-submenu" class="pl-6 pb-2 hidden">
+                <div id="productos-submenu" class="pl-6 pb-2 hidden">
                   <a
                     href="#"
-                    onclick="selectLink('almacen-link')"
-                    id="almacen-link"
+                    onclick="event.preventDefault(); selectLink('productos-link'); loadSection('ListaProductos')"
+                    id="productos-link"
                     class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
-                    >Gestión de Stock</a
+                    >Ver Productos</a
                   >
                 </div>
               </div>
@@ -318,7 +318,10 @@
           </div>
         </header>
 
-        <main id="main-content" class="flex-1 p-6"></main>
+        <main
+          id="main-content"
+          class="flex-1 p-6 overflow-y-auto h-[calc(100vh-80px)]"
+        ></main>
 
         <div
           id="perfilModal"
@@ -718,12 +721,15 @@
           // Guardar la vista actual
           localStorage.setItem("currentView", section);
 
-          // 🧩 1️⃣ Cargar el HTML
+          // Cargar el HTML
           const response = await fetch("views/" + section + ".html");
+          if (!response.ok)
+            throw new Error(`No se pudo cargar la vista: ${section}`);
+
           const content = await response.text();
           document.getElementById("main-content").innerHTML = content;
 
-          // 🧩 2️⃣ Cargar el CSS correspondiente
+          // Cargar el CSS correspondiente
           const cssUrl = "css/" + section + ".css";
 
           // Eliminar CSS anterior si existe
@@ -735,11 +741,9 @@
           link.rel = "stylesheet";
           link.href = cssUrl;
           link.id = "dynamic-section-style";
-
-          // Agregarlo al <head>
           document.head.appendChild(link);
 
-          // 🧩 3️⃣ Cargar el JS correspondiente
+          // Cargar el JS correspondiente
           const scriptUrl = "js/" + section + ".js";
 
           // Eliminar script anterior si existe
@@ -752,19 +756,32 @@
           script.id = "dynamic-section-script";
           document.body.appendChild(script);
 
-          // 🧩 4️⃣ Esperar a que cargue el script y luego ejecutar su init
+          // Esperar a que cargue el script y luego ejecutar su init
           script.onload = () => {
             const initFunctionName =
               "init" + section.charAt(0).toUpperCase() + section.slice(1);
-
             if (typeof window[initFunctionName] === "function") {
               window[initFunctionName]();
             }
           };
         } catch (error) {
-          console.error("Error al cargar la sección:", error);
-          document.getElementById("main-content").innerHTML =
-            "<p class='text-red-500'>Error al cargar la sección</p>";
+          console.error("❌ Error al cargar la sección:", error);
+
+          // Intentar cargar la vista de error
+          try {
+            const errorResponse = await fetch("views/ViewError.html");
+            if (!errorResponse.ok)
+              throw new Error("No se pudo cargar ViewError.html");
+
+            const errorHtml = await errorResponse.text();
+            document.getElementById("main-content").innerHTML = errorHtml;
+          } catch (innerError) {
+            // Si también falla la vista de error, mostrar mensaje básico
+            document.getElementById("main-content").innerHTML = `
+        <div class="text-center mt-10 text-red-600 font-bold">
+          Error crítico al cargar la vista o la página de error.
+        </div>`;
+          }
         }
       }
     </script>

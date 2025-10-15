@@ -29,6 +29,11 @@ public class UsuarioService {
         return usuarioRepo.claveUsuario(idUsuario);
     }
 
+    public String registrarUsuario(UsuarioDTO usuario) {
+        return usuarioRepo.registrarUsuario(usuario);
+    }
+
+
     public void actualizarUsuario(UsuarioDTO usuario) {
         usuarioRepo.actualizarUsuario(usuario);
     }
