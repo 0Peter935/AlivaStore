@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.store.erp.Models.PedidoDTO;
-import com.store.erp.Models.PedidoDetalleDTO;
 import com.store.erp.Repo.PedidoRepo;
 
 @Service
@@ -24,11 +23,6 @@ public class PedidoService {
     }
 
     public void registrarPedidoCompleto(PedidoDTO pedido) {
-        int idPedido = pedidoRepo.registrarPedido(pedido);
-
-        for (PedidoDetalleDTO det : pedido.getDetalles()) {
-            det.setIdPedido(idPedido);
-            pedidoRepo.registrarDetalle(det);
-        }
+        pedidoRepo.actualizarPedidoCompleto(pedido);
     }
 }

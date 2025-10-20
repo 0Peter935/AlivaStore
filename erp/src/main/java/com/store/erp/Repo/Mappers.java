@@ -158,6 +158,7 @@ public class Mappers extends RepoUtils {
         p.setTipoComprobante(safeString(rs, "TIPO_COMPROBANTE"));
         p.setMontoCobrado(safeDouble(rs, "MONTO_COBRADO"));
         p.setObservacion(safeString(rs, "OBSERVACION"));
+        p.setEvidencia(safeString(rs, "EVIDENCIA"));
         p.setFechaRegistro(safeDateTime(rs, "FECHA_REGISTRO"));
 
         p.setUsuario(mapUsuario(rs));

@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# === ARCHIVOS SENSIBLES ===
+# No subir credenciales ni configuraciones privadas
+src/main/resources/application.properties
+src/main/resources/application.yml
+.env

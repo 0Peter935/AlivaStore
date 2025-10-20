@@ -60,6 +60,18 @@ public class ProductoRepo extends Mappers {
         );
     }
 
+    public void actualizarProducto(ProductoDTO p) {
+        jdbcTemplate.update(
+            "EXEC SP_PRODUCTO_ACTUALIZAR ?, ?, ?, ?, ?, ?",
+            p.getCodProducto(),
+            p.getDescProducto(),
+            p.getStock(),
+            p.getPrecio(),
+            p.getImagen(),
+            p.getEstado()
+        );
+    }
+
     public void actualizarRegalo(int idProducto, boolean regalo) {
         jdbcTemplate.update(
             "EXEC SP_PRODUCTO_ACTUALIZAR_REGALO ?, ?",
@@ -72,6 +84,19 @@ public class ProductoRepo extends Mappers {
         jdbcTemplate.update(
             "EXEC SP_PRODUCTO_CAMBIAR_ESTADO ?, ?",
             idProducto, estado
+        );
+    }
+
+    public int sincronizarProducto(ProductoDTO dto) {
+        return jdbcTemplate.update(
+            "EXEC SP_PRODUCTO_UPSERT ?, ?, ?, ?, ?, ?, ?",
+            dto.getCodProducto(),
+            dto.getDescProducto(),
+            dto.getPrecio(),
+            dto.getStock(),
+            dto.getImagen(),
+            dto.getRegalo(),
+            dto.getEstado()
         );
     }
 

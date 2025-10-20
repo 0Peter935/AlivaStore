@@ -259,10 +259,10 @@
                 <div id="configuracion-submenu" class="pl-6 pb-2 hidden">
                   <a
                     href="#"
-                    onclick="selectLink('configuracion-link')"
+                    onclick="event.preventDefault(); selectLink('configuracion-link'); loadSection('Sincronizaciones')"
                     id="configuracion-link"
                     class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold"
-                    >Preferencias</a
+                    >Sincronizaciones</a
                   >
                 </div>
               </div>

@@ -18,7 +18,7 @@ public class PedidoDTO {
     private EstadoPedidoDTO estadoPedido;
     private EmpresaEntregaDTO empresaEntrega;
     private String documento;
-    private ProductoDTO regalo;
+    private String evidencia;
     private double subtotal;
     private double igv;
     private double adelanto;
