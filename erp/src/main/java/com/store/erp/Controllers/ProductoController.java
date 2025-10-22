@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.store.erp.Models.ProductoDTO;
 import com.store.erp.Services.ProductoService;
+import com.store.erp.Services.ShopifyService;
 
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,9 @@ public class ProductoController {
 
     @Autowired
     private ProductoService productoService;
+
+    @Autowired
+    private ShopifyService shopifyService;
 
     @GetMapping
     public List<ProductoDTO> listarProductos() {
@@ -54,15 +58,33 @@ public class ProductoController {
     }
 
     @PutMapping("/{id}/estado")
-    public ResponseEntity<?> cambiarEstado(@PathVariable("id") int idProducto, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> cambiarEstado(
+            @PathVariable("id") int idProducto,
+            @RequestBody Map<String, Object> body) {
         try {
             boolean estado = Boolean.parseBoolean(body.get("estado").toString());
+
+            // 🔹 Actualizar en la BD
             productoService.cambiarEstado(idProducto, estado);
-            return ResponseEntity.ok(Map.of("message", "Estado actualizado correctamente"));
+
+            // 🔹 Obtener producto para sincronizar
+            ProductoDTO producto = productoService.obtenerPorId(idProducto);
+            if (producto == null)
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Producto no encontrado"));
+
+            // 🔹 Sincronizar con Shopify (servicio modular)
+            boolean ok = shopifyService.actualizarEstadoProducto(producto, estado);
+
+            return ok
+                    ? ResponseEntity.ok(Map.of("message", "Estado actualizado en BD y Shopify"))
+                    : ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                            .body(Map.of("error", "Actualizado en BD, pero falló sincronización con Shopify"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
                     .body(Map.of("error", "Error al actualizar estado", "details", e.getMessage()));
         }
     }
-}
 
+}

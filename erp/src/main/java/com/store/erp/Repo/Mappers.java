@@ -106,13 +106,24 @@ public class Mappers extends RepoUtils {
     public static ClienteDTO mapCliente(ResultSet rs) throws SQLException {
         ClienteDTO c = new ClienteDTO();
         c.setIdCliente(safeInt(rs, "ID_CLIENTE"));
-        c.setNombres(safeString(rs, "CLIENTE_NOMBRES"));
-        c.setApellidos(String.join(" ",
-            Optional.ofNullable(safeString(rs, "CLIENTE_APELLIDO_PATERNO")).orElse(""),
-            Optional.ofNullable(safeString(rs, "CLIENTE_APELLIDO_MATERNO")).orElse("")
-        ).trim());
+        c.setCodigoCliente(safeString(rs, "COD_CLIENTE"));
+        c.setNombres(safeString(rs, "NOMBRE_COMPLETO"));
+        c.setTelefono(safeString(rs, "TELEFONO"));
+        c.setCorreo(safeString(rs, "CORREO"));
+        
         return c;
     }
+
+    public static ClienteLogDTO mapClienteLog(ResultSet rs) throws SQLException {
+        ClienteLogDTO cl = new ClienteLogDTO();
+        cl.setIdClienteLog(safeInt(rs, "ID_CLIENTE_LOG"));
+        cl.setIdCliente(safeInt(rs, "ID_CLIENTE"));
+        cl.setActividad(safeString(rs, "ACTIVIDAD"));
+        cl.setFechaActividad(safeString(rs, "FECHA_ACTIVIDAD"));
+        return cl;
+    }
+
+    
 
     public static EstadoPedidoDTO mapEstadoPedido(ResultSet rs) throws SQLException {
         EstadoPedidoDTO e = new EstadoPedidoDTO();

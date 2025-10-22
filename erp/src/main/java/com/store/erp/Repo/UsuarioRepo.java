@@ -17,7 +17,7 @@ public class UsuarioRepo extends Mappers {
         try {
             return jdbcTemplate.queryForObject(
                 "EXEC SP_USUARIO_LOGIN ?, ?",
-                (rs, _) -> Mappers.mapUsuario(rs),
+                (rs, _) -> mapUsuario(rs),
                 usuario, clave
             );
         } catch (Exception e) {
@@ -28,14 +28,14 @@ public class UsuarioRepo extends Mappers {
     public List<UsuarioDTO> listarUsuarios() {
         return jdbcTemplate.query(
             "EXEC SP_USUARIO_LISTAR",
-            (rs, _) -> Mappers.mapUsuario(rs)
+            (rs, _) -> mapUsuario(rs)
         );
     }
 
     public UsuarioDTO obtenerUsuarioPorId(int idUsuario) {
         return jdbcTemplate.queryForObject(
             "EXEC SP_USUARIO_BUSCAR_ID ?",
-            (rs, _) -> Mappers.mapUsuario(rs),
+            (rs, _) -> mapUsuario(rs),
             idUsuario
         );
     }
@@ -44,7 +44,7 @@ public class UsuarioRepo extends Mappers {
     public UsuarioDTO claveUsuario(int idUsuario) {
         return jdbcTemplate.queryForObject(
             "EXEC SP_USUARIO_CLAVE ?",
-            (rs, _) -> Mappers.mapUsuario(rs),
+            (rs, _) -> mapUsuario(rs),
             idUsuario          
         );
     }

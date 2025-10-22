@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class ClienteDTO {
 
     private int idCliente;
+    private String codigoCliente;
     private String nombres;
     private String apellidos;
     private String documento;

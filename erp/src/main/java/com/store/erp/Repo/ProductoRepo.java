@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import com.store.erp.Models.AlmacenStockDTO;
 import com.store.erp.Models.ProductoDTO;
+import com.store.erp.Models.UsuarioDTO;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -45,6 +46,14 @@ public class ProductoRepo extends Mappers {
 
             return new ArrayList<>(map.values());
         });
+    }
+
+    public ProductoDTO obtenerPorId(int idProducto) {
+        return jdbcTemplate.queryForObject(
+            "EXEC SP_PRODUCTO_BUSCAR_ID ?",
+            (rs, _) -> Mappers.mapProducto(rs),
+            idProducto
+        );
     }
 
     public void registrarProducto(ProductoDTO p) {

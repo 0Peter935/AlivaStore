@@ -100,114 +100,130 @@
 <!-- Modal: Agregar nuevo producto -->
 <div
   id="modalNuevoProducto"
-  class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+  class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
 >
   <div
-    class="bg-white rounded-lg shadow-xl w-[600px] max-h-[90vh] overflow-y-auto p-6 relative"
+    class="bg-white rounded-2xl shadow-2xl w-[550px] max-h-[90vh] overflow-y-auto border border-gray-100 animate-fadeIn relative"
   >
-    <h2 class="text-xl font-bold text-gray-800 mb-4">Agregar nuevo producto</h2>
+    <!-- Header -->
+    <div
+      class="flex justify-between items-center px-6 py-4 border-b border-gray-100"
+    >
+      <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+        <i class="fa-solid fa-box text-aliva-blue"></i>
+        Nuevo producto
+      </h2>
+      <button
+        onclick="cerrarModalNuevoProducto()"
+        class="text-gray-400 hover:text-gray-600 transition"
+      >
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+    </div>
 
-    <form id="formNuevoProducto" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Código</label>
-        <input
-          type="text"
-          id="npCodProducto"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          required
-        />
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700"
-          >Descripción</label
-        >
-        <textarea
-          id="npDescProducto"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          rows="2"
-          required
-        ></textarea>
-      </div>
-
-      <div class="flex gap-4">
-        <div class="flex-1">
-          <label class="block text-sm font-medium text-gray-700"
-            >Precio (S/)</label
-          >
+    <!-- Body -->
+    <form id="formNuevoProducto" class="p-6 space-y-5">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium text-gray-600">Código</label>
+          <input
+            type="text"
+            id="npCodProducto"
+            required
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+            placeholder="P001"
+          />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-600">Precio (S/)</label>
           <input
             type="number"
             id="npPrecio"
             step="0.01"
             min="0"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             required
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+            placeholder="0.00"
           />
         </div>
-        <div class="flex-1">
-          <label class="block text-sm font-medium text-gray-700">Stock</label>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-gray-600">Descripción</label>
+        <textarea
+          id="npDescProducto"
+          required
+          rows="2"
+          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+          placeholder="Ejemplo: Lavadero de acero inoxidable premium..."
+        ></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium text-gray-600">Stock</label>
           <input
             type="number"
             id="npStock"
             step="1"
             min="0"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             required
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+            placeholder="Ej. 10"
           />
         </div>
-      </div>
-
-      <div class="flex gap-4">
-        <div class="flex-1">
-          <label class="block text-sm font-medium text-gray-700"
-            >Imagen (URL)</label
-          >
+        <div>
+          <label class="text-sm font-medium text-gray-600">Imagen (URL)</label>
           <input
             type="text"
             id="npImagen"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             placeholder="https://..."
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:ring-2 focus:ring-aliva-blue focus:outline-none"
           />
         </div>
       </div>
 
-      <div class="flex items-center gap-4">
-        <label class="flex items-center gap-2">
-          <input type="checkbox" id="npRegalo" class="w-4 h-4 text-blue-500" />
-          <span class="text-sm text-gray-700">¿Es producto de regalo?</span>
-        </label>
-        <label class="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="npEstado"
-            class="w-4 h-4 text-blue-500"
-            checked
-          />
-          <span class="text-sm text-gray-700">Activo</span>
-        </label>
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-gray-100"
+      >
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="npRegalo"
+              class="w-4 h-4 text-aliva-blue focus:ring-aliva-blue"
+            />
+            <span class="text-sm text-gray-700">¿Es producto de regalo?</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="npEstado"
+              checked
+              class="w-4 h-4 text-aliva-blue focus:ring-aliva-blue"
+            />
+            <span class="text-sm text-gray-700">Activo</span>
+          </label>
+        </div>
       </div>
     </form>
 
-    <div class="flex justify-end mt-6 gap-3">
+    <!-- Footer -->
+    <div
+      class="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl"
+    >
       <button
         onclick="cerrarModalNuevoProducto()"
-        class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all"
+        class="px-5 py-2 rounded-lg text-gray-700 border border-gray-300 hover:bg-gray-100 transition"
       >
         Cancelar
       </button>
       <button
         onclick="guardarNuevoProducto()"
-        class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition-all"
+        class="px-5 py-2 rounded-lg bg-aliva-blue text-white hover:bg-aliva-purple transition shadow-sm"
       >
-        Guardar
+        Guardar producto
       </button>
     </div>
-
-    <button
-      onclick="cerrarModalNuevoProducto()"
-      class="absolute top-3 right-4 text-gray-500 hover:text-gray-800"
-    >
-      <i class="fa-solid fa-xmark text-lg"></i>
-    </button>
   </div>
 </div>

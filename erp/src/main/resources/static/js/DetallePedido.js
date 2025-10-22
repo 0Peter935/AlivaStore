@@ -122,10 +122,10 @@
     const cont = document.getElementById("infoCliente");
     if (!cont || !cliente) return;
     cont.innerHTML = `
+      <p><strong>Código:</strong> ${cliente.codigoCliente ?? "-"}</p>
       <p><strong>Nombre:</strong> ${cliente.nombres ?? "-"}</p>
-      <p><strong>Apellidos / Teléfono:</strong> ${cliente.apellidos ?? "-"}</p>
+      <p><strong>Teléfono:</strong> ${cliente.telefono ?? "-"}</p>
       <p><strong>Correo:</strong> ${cliente.correo ?? "-"}</p>
-      <p><strong>Documento:</strong> ${cliente.documento ?? "-"}</p>
     `;
   }
 
@@ -150,7 +150,7 @@
       pedido.evidencia.trim() !== "" &&
       pedido.evidencia.includes(".")
     ) {
-      // 🔹 Contenedor principal centrado
+      // Contenedor principal centrado
       const wrapper = document.createElement("div");
       wrapper.className = `
       flex flex-col items-center justify-center 
@@ -158,7 +158,7 @@
       bg-white transition-transform duration-300 group hover:scale-105
     `;
 
-      // 🔹 Imagen centrada
+      // Imagen centrada
       const img = document.createElement("img");
       img.src = `/recursos/img/evidencia/${pedido.evidencia}`;
       img.alt = "Comprobante";
@@ -305,7 +305,7 @@
         selectEmp.appendChild(opt);
       });
     } catch (err) {
-      console.error("❌ Error al cargar empresas de entrega:", err);
+      console.error("Error al cargar empresas de entrega:", err);
     }
 
     // === Tipo de Pago ===
@@ -751,7 +751,7 @@
         detalles,
       };
 
-      console.log("🧾 Pedido a enviar:", pedido);
+      console.log("Pedido a enviar:", pedido);
 
       // 🔹 Construir FormData (pedido + evidencia opcional)
       const formData = new FormData();
@@ -761,9 +761,9 @@
       );
       if (pedidoActual.evidenciaFile) {
         formData.append("file", pedidoActual.evidenciaFile);
-        console.log("🖼️ Evidencia adjunta:", pedidoActual.evidenciaFile.name);
+        console.log("Evidencia adjunta:", pedidoActual.evidenciaFile.name);
       } else {
-        console.log("🖼️ Sin evidencia (file no adjunto)");
+        console.log("Sin evidencia (file no adjunto)");
       }
 
       // 🔹 Envío al backend

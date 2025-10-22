@@ -18,6 +18,10 @@ public class ProductoService {
         return productoRepo.listarProductos();
     }
 
+    public ProductoDTO obtenerPorId(int idProducto) {
+        return productoRepo.obtenerPorId(idProducto);
+    }
+
     public void registrarProducto(ProductoDTO producto) {
         productoRepo.registrarProducto(producto);
     }
@@ -43,6 +47,5 @@ public class ProductoService {
             return false;
         }
     }
-
 
 }
