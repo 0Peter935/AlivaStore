@@ -1,8 +1,9 @@
-(() => {
-  if (window.pedidosGridInicializado) return;
-  window.pedidosGridInicializado = true;
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("🧩 Iniciando ListaPedidos...");
 
   let gridApiPedidos = null;
+
+  initListaPedidos();
 
   async function initListaPedidos() {
     const gridDiv = document.querySelector("#pedidosGrid");
@@ -179,8 +180,6 @@
 
   window.verDetallePedido = (idPedido) => {
     localStorage.setItem("pedidoSeleccionado", idPedido);
-    loadSection("DetallePedido");
+    window.location.href = "/pedidos/detallePedido";
   };
-
-  window.initListaPedidos = initListaPedidos;
-})();
+});

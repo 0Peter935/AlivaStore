@@ -11,7 +11,7 @@ document
     try {
       console.log("🌐 Enviando petición a backend Shopify...");
 
-      const resp = await fetch(`/api/shopify/sync`, {
+      const resp = await fetch(`/api/shopify/sync-productos`, {
         method: "POST",
       });
 
@@ -90,5 +90,48 @@ document
     } catch (err) {
       console.error("💥 Error al sincronizar clientes Shopify:", err);
       Swal.fire("Error", "No se pudo sincronizar con Shopify", "error");
+    }
+  });
+
+document
+  .getElementById("btnSyncPedidosShopify")
+  ?.addEventListener("click", async () => {
+    Swal.fire({
+      title: "Sincronizando pedidos...",
+      text: "Espere mientras se actualizan los pedidos desde Shopify",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    try {
+      console.log("🌐 Enviando petición a /api/shopify/sync-pedidos");
+
+      const resp = await fetch("/api/shopify/sync-pedidos", {
+        method: "POST",
+      });
+
+      if (!resp.ok) throw new Error(`Error HTTP ${resp.status}`);
+
+      const data = await resp.json();
+      console.log("✅ Respuesta del backend:", data);
+
+      Swal.fire({
+        icon: "success",
+        title: "Sincronización completa",
+        html: `
+          <p>Pedidos insertados: <b>${data.insertados ?? 0}</b></p>
+          <p>Pedidos actualizados: <b>${data.actualizados ?? 0}</b></p>
+        `,
+        confirmButtonText: "OK",
+      });
+
+      // 🔁 Si tienes función para recargar pedidos
+      if (typeof cargarPedidos === "function") {
+        console.log("🔄 Recargando lista de pedidos...");
+        cargarPedidos();
+      }
+    } catch (err) {
+      console.error("💥 Error al sincronizar pedidos Shopify:", err);
+      Swal.fire("Error", "No se pudo sincronizar los pedidos", "error");
     }
   });

@@ -13,6 +13,7 @@ import java.util.List;
 public class PedidoDTO {
 
     private int idPedido;
+    private String codigoPedido;
     private UsuarioDTO usuario;
     private ClienteDTO cliente;
     private EstadoPedidoDTO estadoPedido;

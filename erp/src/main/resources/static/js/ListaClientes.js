@@ -1,8 +1,9 @@
-(() => {
-  if (window.clientesGridInicializado) return;
-  window.clientesGridInicializado = true;
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("🧩 Iniciando ListaClientes...");
 
   let gridApiClientes = null;
+
+  initListaClientes();
 
   async function initListaClientes() {
     const gridDiv = document.querySelector("#clientesGrid");
@@ -165,6 +166,4 @@
       );
     }
   };
-
-  window.initListaClientes = initListaClientes;
-})();
+});

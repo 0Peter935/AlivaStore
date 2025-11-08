@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ALIVA PERÚ - Dashboard</title>
+    <script src="/js/global-preload.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/tailwind-config.js"></script>
+    <link rel="stylesheet" href="/css/DetallePedido.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"
+    />
+  </head>
+  <body class="h-full bg-gray-100">
+    <div class="flex h-full">
+      <div id="sidebar-container"></div>
+
+      <div class="flex-1 flex flex-col">
+        <div id="header-container"></div>
+
+        <main
+          id="main-content"
+          class="flex-1 p-6 overflow-y-auto h-[calc(100vh-80px)]"
+        >
+          <div class="p-6 space-y-8">
+            <!-- Datos del cliente -->
+            <section class="bg-white shadow-md rounded-lg p-4">
+              <h2 class="text-xl font-bold text-gray-700 mb-3">
+                Datos del Cliente
+              </h2>
+              <div
+                id="infoCliente"
+                class="grid grid-cols-2 gap-4 text-sm text-gray-700"
+              ></div>
+            </section>
+
+            <!-- Datos del pedido -->
+            <section class="bg-white shadow-md rounded-lg p-4">
+              <h2 class="text-xl font-bold text-gray-700 mb-3">
+                Datos del Pedido
+              </h2>
+
+              <div
+                id="infoPedido"
+                class="grid grid-cols-3 gap-4 text-sm text-gray-700"
+              >
+                <div>
+                  <label class="block text-gray-600 text-xs font-semibold mb-1"
+                    >Documento</label
+                  >
+                  <input
+                    id="pedidoDocumento"
+                    type="text"
+                    class="w-full border rounded-lg p-1.5 focus:ring-2 focus:ring-purple-500"
+                    readonly
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-gray-600 text-xs font-semibold mb-1"
+                    >Tipo de Comprobante</label
+                  >
+                  <select
+                    id="pedidoComprobante"
+                    class="w-full border rounded-lg p-1.5 focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">Cargando...</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-gray-600 text-xs font-semibold mb-1"
+                    >Tipo de Pago</label
+                  >
+                  <select
+                    id="pedidoTipoPago"
+                    class="w-full border rounded-lg p-1.5 focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">Cargando...</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-gray-600 text-xs font-semibold mb-1"
+                    >Ciudad</label
+                  >
+                  <input
+                    id="pedidoCiudad"
+                    type="text"
+                    class="w-full border rounded-lg p-1.5 focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-gray-600 text-xs font-semibold mb-1"
+                    >Empresa de Entrega</label
+                  >
+                  <select
+                    id="pedidoEmpresaEntrega"
+                    class="w-full border rounded-lg p-1.5 focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">Cargando...</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            <!-- Productos del pedido -->
+            <section class="bg-white shadow-md rounded-lg p-4">
+              <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl font-bold text-gray-700">
+                  Productos del Pedido
+                </h2>
+                <button
+                  id="btnAgregarProducto"
+                  class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2"
+                >
+                  <i class="fa-solid fa-plus"></i> Agregar Producto
+                </button>
+              </div>
+
+              <div
+                id="detallePedidoGrid"
+                class="ag-theme-alpine w-full"
+                style="height: auto; min-height: 200px"
+              ></div>
+            </section>
+
+            <!-- 🧠 Comprobante y Estado de Pago -->
+            <section class="grid grid-cols-2 gap-6">
+              <!-- 📸 Carga de Comprobante -->
+              <div
+                id="evidenciaContainer"
+                class="bg-white shadow-md rounded-lg p-5 border"
+              >
+                <h2 class="text-lg font-bold text-gray-700 mb-3">
+                  📸 Comprobante del Pedido
+                </h2>
+
+                <input
+                  type="file"
+                  id="inputComprobante"
+                  accept="image/*"
+                  class="hidden"
+                />
+
+                <div id="previewComprobante"></div>
+              </div>
+
+              <!-- 💵 Estado de Pago -->
+              <div
+                id="estadoPagoContainer"
+                class="bg-white shadow-md rounded-lg p-4 border"
+              >
+                <h2 class="text-base font-bold text-gray-700 mb-2">
+                  💵 Estado de Pago
+                </h2>
+
+                <div class="space-y-3">
+                  <!-- 💰 Pago completo -->
+                  <div
+                    class="border-2 border-purple-500 bg-purple-50 rounded-lg p-3 cursor-pointer transition-all"
+                    onclick="selectCard(this, 'adelantoContainer', false)"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <i
+                          class="fas fa-check-circle text-purple-600 text-lg mr-2"
+                        ></i>
+                        <span class="font-semibold text-gray-800 text-sm"
+                          >Pago Completo</span
+                        >
+                      </div>
+                      <i
+                        class="fas fa-money-bill-wave text-purple-600 text-base"
+                      ></i>
+                    </div>
+                  </div>
+
+                  <!-- 💵 Pago con adelanto -->
+                  <div
+                    class="border-2 border-gray-300 rounded-lg p-3 cursor-pointer hover:border-purple-300 transition-all"
+                    onclick="selectCard(this, 'adelantoContainer', true)"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <i class="far fa-circle text-gray-400 text-lg mr-2"></i>
+                        <span class="font-semibold text-gray-800 text-sm"
+                          >Pago con Adelanto</span
+                        >
+                      </div>
+                      <i
+                        class="fas fa-hand-holding-usd text-gray-400 text-base"
+                      ></i>
+                    </div>
+                    <div id="adelantoContainer" class="hidden">
+                      <label class="block text-xs text-gray-600 mt-2 mb-1"
+                        >Monto Adelantado:</label
+                      >
+                      <div class="relative">
+                        <span
+                          class="absolute left-3 top-2 text-gray-500 text-sm"
+                          >S/</span
+                        >
+                        <input
+                          type="number"
+                          id="montoAdelanto"
+                          min="0"
+                          step="0.01"
+                          value="0.00"
+                          class="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-right text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Resumen financiero -->
+            <section class="bg-white shadow-md rounded-lg p-4">
+              <h2 class="text-xl font-bold text-gray-700 mb-3">
+                Resumen Financiero
+              </h2>
+              <div
+                id="infoFinanciera"
+                class="grid grid-cols-4 gap-4 text-sm text-gray-700"
+              >
+                <div class="flex justify-between text-gray-700">
+                  <p>
+                    <strong>Subtotal:</strong>
+                    <span id="subtotalValor">S/ 0.00</span>
+                  </p>
+                  <p>
+                    <strong>IGV:</strong> <span id="igvValor">S/ 0.00</span>
+                  </p>
+                  <p>
+                    <strong>Adelanto:</strong>
+                    <span id="adelantoValor" class="text-green-600"
+                      >Pagado</span
+                    >
+                  </p>
+                  <p>
+                    <strong>Total:</strong>
+                    <span id="totalValor" class="text-green-600 font-semibold"
+                      >S/ 0.00</span
+                    >
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <button
+              id="btnGuardarPedido"
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Guardar Pedido Completo
+            </button>
+          </div>
+
+          <!-- Modal para agregar producto -->
+          <div
+            id="modalAgregarProducto"
+            class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+          >
+            <div
+              class="bg-white rounded-xl shadow-xl w-[420px] p-6 relative flex flex-col gap-4"
+            >
+              <h2 class="text-xl font-bold text-gray-700 text-center mb-2">
+                Agregar Producto
+              </h2>
+
+              <!-- Toggle -->
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-gray-700 font-semibold"
+                  >Tipo de producto:</span
+                >
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <span class="text-sm text-gray-600">Normal</span>
+                  <input type="checkbox" id="toggleRegalo" class="hidden" />
+                  <div
+                    id="toggleSwitch"
+                    class="w-10 h-5 bg-gray-300 rounded-full relative transition-all duration-300"
+                  >
+                    <div
+                      id="toggleCircle"
+                      class="absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full shadow transition-all duration-300"
+                    ></div>
+                  </div>
+                  <span class="text-sm text-blue-600 font-semibold"
+                    >Regalo</span
+                  >
+                </label>
+              </div>
+
+              <!-- Select de productos -->
+              <div>
+                <label class="block text-gray-700 mb-1"
+                  >Seleccionar producto:</label
+                >
+                <select
+                  id="selectProducto"
+                  class="w-full border border-gray-300 rounded-lg p-2"
+                >
+                  <option value="">Seleccione un producto</option>
+                </select>
+              </div>
+
+              <!-- Cantidad -->
+              <div>
+                <label class="block text-gray-700 mb-1">Cantidad:</label>
+                <input
+                  type="number"
+                  id="inputCantidad"
+                  class="w-full border border-gray-300 rounded-lg p-2"
+                  placeholder="Ingrese cantidad"
+                  min="1"
+                  value="1"
+                />
+              </div>
+
+              <!-- Botones -->
+              <div class="flex justify-end gap-3 mt-4">
+                <button
+                  id="btnCancelarAgregar"
+                  class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg"
+                >
+                  Cancelar
+                </button>
+                <button
+                  id="btnConfirmarAgregar"
+                  class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
+                >
+                  Agregar
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/ag-grid-community@31.3.0/dist/ag-grid-community.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="/js/navar.js" defer></script>
+    <script src="/js/header.js" defer></script>
+
+    <script src="/js/DetallePedido.js" defer></script>
+  </body>
+</html>

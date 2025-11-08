@@ -28,6 +28,13 @@ public class ClienteRepo extends Mappers {
         );
     }
 
+    public ClienteDTO ObtenerPorCodigo(String cod_cliente) {
+        return jdbcTemplate.queryForObject("EXEC SP_CLIENTE_BUSCAR_COD ?",
+            (rs, _) -> mapCliente(rs),
+            cod_cliente
+        );
+    }
+
     public int sincronizarClientes(ClienteDTO dto) {
         return jdbcTemplate.update(
             "EXEC SP_CLIENTE_UPSERT ?, ?, ?, ?",

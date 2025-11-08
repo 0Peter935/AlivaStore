@@ -56,6 +56,14 @@ public class ProductoRepo extends Mappers {
         );
     }
 
+    public ProductoDTO obtenerPorCod(String cod_prod) {
+        return jdbcTemplate.queryForObject(
+            "EXEC SP_PRODUCTO_BUSCAR_COD ?",
+            (rs, _) -> Mappers.mapProducto(rs),
+            cod_prod
+        );
+    }
+
     public void registrarProducto(ProductoDTO p) {
         jdbcTemplate.update(
             "EXEC SP_PRODUCTO_INSERTAR ?, ?, ?, ?, ?, ?, ?",

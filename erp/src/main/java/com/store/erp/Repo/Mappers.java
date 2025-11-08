@@ -159,6 +159,7 @@ public class Mappers extends RepoUtils {
     public static PedidoDTO mapPedido(ResultSet rs) throws SQLException {
         PedidoDTO p = new PedidoDTO();
         p.setIdPedido(safeInt(rs, "ID_PEDIDO"));
+        p.setCodigoPedido(safeString(rs, "CODIGO_PEDIDO"));
         p.setDocumento(safeString(rs, "DOCUMENTO"));
         p.setSubtotal(safeDouble(rs, "SUBTOTAL"));
         p.setIgv(safeDouble(rs, "IGV"));

@@ -1,9 +1,14 @@
-(() => {
-  if (window.productosGridInicializado) return;
-  window.productosGridInicializado = true;
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("🧩 Iniciando ListaProductos...");
 
   let gridApiProductos = null;
+  let almacenesDisponibles = [];
+  let stockActual = [];
+  let idProductoSeleccionado = null;
 
+  initListaProductos();
+
+  // Inicializar la tabla
   async function initListaProductos() {
     const gridDiv = document.querySelector("#productosGrid");
     if (!gridDiv) return;
@@ -178,46 +183,21 @@
     }
   }
 
+  // Cargar productos
   async function loadProductos() {
     try {
       const res = await fetch("/api/productos");
-      if (!res.ok) throw new Error("Error al obtener productos");
+      if (!res.ok) throw new Error("Error al cargar productos");
       const data = await res.json();
       gridApiProductos.setGridOption("rowData", data);
+      console.log(`✅ ${data.length} productos cargados`);
     } catch (err) {
-      console.error("Error al cargar productos:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudieron cargar los productos",
-      });
+      console.error("❌ Error al cargar productos:", err);
+      Swal.fire("Error", "No se pudieron cargar los productos.", "error");
     }
   }
 
-  // Cambiar estado regalo
-  window.toggleRegaloProducto = async function (idProducto, regaloActual) {
-    const nuevoValor = !regaloActual;
-
-    try {
-      const res = await fetch(`/api/productos/${idProducto}/regalo`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ regalo: nuevoValor }),
-      });
-
-      if (!res.ok) throw new Error(await res.text());
-      loadProductos();
-    } catch (err) {
-      console.error("Error al actualizar regalo:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo cambiar el estado de regalo del producto.",
-      });
-    }
-  };
-
-  // Cambiar estado
+  // Cambiar estado de producto
   window.toggleEstadoProducto = async function (idProducto, btn) {
     const isActive = btn.classList.contains("bg-blue-500");
     const newState = !isActive;
@@ -249,9 +229,28 @@
     }
   };
 
-  let idProductoSeleccionado = null;
-  let almacenesDisponibles = [];
-  let stockActual = [];
+  // Cambiar estado regalo
+  window.toggleRegaloProducto = async function (idProducto, regaloActual) {
+    const nuevoValor = !regaloActual;
+
+    try {
+      const res = await fetch(`/api/productos/${idProducto}/regalo`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ regalo: nuevoValor }),
+      });
+
+      if (!res.ok) throw new Error(await res.text());
+      loadProductos();
+    } catch (err) {
+      console.error("Error al actualizar regalo:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo cambiar el estado de regalo del producto.",
+      });
+    }
+  };
 
   // Abrir modal
   window.abrirModalStock = async function (producto) {
@@ -596,6 +595,4 @@
       });
     }
   };
-
-  window.initListaProductos = initListaProductos;
-})();
+});

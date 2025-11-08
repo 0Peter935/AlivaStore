@@ -1,15 +1,26 @@
 package com.store.erp.Controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.store.erp.Models.ClienteDTO;
+import com.store.erp.Models.EmpresaEntregaDTO;
+import com.store.erp.Models.EstadoPedidoDTO;
+import com.store.erp.Models.PedidoDTO;
+import com.store.erp.Models.PedidoDetalleDTO;
 import com.store.erp.Models.ProductoDTO;
+import com.store.erp.Models.UsuarioDTO;
 import com.store.erp.Services.ClienteService;
+import com.store.erp.Services.PedidoService;
 import com.store.erp.Services.ProductoService;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,50 +45,79 @@ public class ShopifyController {
     @Autowired
     private ClienteService clienteService;
 
-    @PostMapping("/webhook")
-    public ResponseEntity<String> recibirWebhook(
-            @RequestBody String payload,
-            @RequestHeader(value = "X-Shopify-Topic", required = false) String topic) {
+    @Autowired
+    private PedidoService pedidoService;
 
-        System.out.println("🛍️ [Shopify] Webhook recibido: " + topic);
-
+    @PostMapping("/orders/create")
+    public ResponseEntity<?> orderCreated(@RequestBody String payload) {
         try {
-            if (topic == null || topic.isEmpty()) {
-                return ResponseEntity.badRequest().body("❌ Falta cabecera X-Shopify-Topic");
-            }
-
             ObjectMapper mapper = new ObjectMapper();
             JsonNode json = mapper.readTree(payload);
 
-            switch (topic) {
-                case "products/create":
-                    ProductoDTO productoNuevo = mapearProductoShopify(json);
-                    productoService.registrarProducto(productoNuevo);
-                    break;
+            PedidoDTO pedido = mapearPedidoShopify(json);
+            pedidoService.registrarPedidoCompleto(pedido);
 
-                case "products/update" ,  "inventory_levels/update":
-                    ProductoDTO productoActualizado = mapearProductoShopify(json);
-                    productoService.actualizarProducto(productoActualizado);
-                    break;
-
-                case "orders/create":
-                    System.out.println("🧾 Pedido Shopify recibido, aún no implementado.");
-                    break;
-
-                default:
-                    System.out.println("⚠️ Evento no manejado: " + topic);
-                    break;
-            }
-
-            return ResponseEntity.ok("✅ Webhook procesado correctamente");
-
+            return ResponseEntity.ok().build();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al procesar el JSON del pedido de Shopify");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error interno al registrar el pedido");
         }
     }
 
-    @PostMapping("/sync")
+    @PostMapping("/orders/updated")
+    public ResponseEntity<?> orderUpdated(@RequestBody Map<String, Object> body) {
+        //pedidoService.actualizarPedido(body);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/products/create")
+    public ResponseEntity<?> productCreated(@RequestBody String payload) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode json = mapper.readTree(payload);
+
+            ProductoDTO productoNuevo = mapearProductoShopify(json);
+            productoService.registrarProducto(productoNuevo);
+
+            return ResponseEntity.ok().build();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al procesar el JSON del producto de Shopify");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error interno al registrar el producto");
+        }
+    }
+
+    @PostMapping("/products/update")
+    public ResponseEntity<?> productUpdated(@RequestBody String payload) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode json = mapper.readTree(payload);
+
+            ProductoDTO productoActualizado = mapearProductoShopify(json);
+            productoService.actualizarProducto(productoActualizado);
+
+            return ResponseEntity.ok().build();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al procesar el JSON del producto de Shopify");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error interno al actualizar el producto");
+        }
+    }
+
+    @PostMapping("/sync-productos")
     public ResponseEntity<?> sincronizarProductosShopify() {
         System.out.println("🟢 [INICIO] Sincronización manual con Shopify iniciada...");
 
@@ -261,8 +301,81 @@ public class ShopifyController {
         }
     }
 
+    @PostMapping("/sync-pedidos")
+    public ResponseEntity<?> sincronizarPedidosShopify() {
+        System.out.println("🟢 [INICIO] Sincronización manual de pedidos con Shopify iniciada...");
 
+        int insertados = 0;
+        int actualizados = 0;
 
+        try {
+            String url = "https://" + shopDomain + "/admin/api/2025-10/orders.json";
+            System.out.println("🌐 URL Shopify: " + url);
+
+            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("X-Shopify-Access-Token", accessToken);
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = conn.getResponseCode();
+            System.out.println("📡 [2] Código de respuesta Shopify: " + responseCode);
+
+            if (responseCode != 200) {
+                return ResponseEntity.status(responseCode)
+                        .body(Map.of("error", "Error al conectar con Shopify (" + responseCode + ")"));
+            }
+
+            // Leer la respuesta JSON
+            String jsonResponse = new String(conn.getInputStream().readAllBytes());
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(jsonResponse);
+
+            JsonNode pedidos = root.get("orders");
+            if (pedidos == null || !pedidos.isArray()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Respuesta JSON inválida: no hay 'orders'"));
+            }
+
+            System.out.println("📦 [4] Procesando " + pedidos.size() + " pedidos...");
+
+            for (JsonNode p : pedidos) {
+                try {
+                    System.out.println("🧠 JSON Pedido: " + p.path("id").asText());
+
+                    PedidoDTO pedidoDTO = mapearPedidoShopify(p);
+
+                    boolean actualizadoPedido = pedidoService.sincronizarPedido(pedidoDTO);
+
+                    if (actualizadoPedido) {
+                        actualizados++;
+                        System.out.println("✅ Pedido actualizado: " + pedidoDTO.getDocumento());
+                    } else {
+                        insertados++;
+                        System.out.println("🆕 Pedido insertado: " + pedidoDTO.getDocumento());
+                    }
+
+                } catch (Exception exPedido) {
+                    System.out.println("💥 [ERROR PEDIDO] " + exPedido.getMessage());
+                    exPedido.printStackTrace();
+                }
+            }
+
+            System.out.println("🏁 [FIN] Sincronización completada. Insertados: " + insertados + " | Actualizados: " + actualizados);
+
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", "Sincronización exitosa",
+                    "insertados", insertados,
+                    "actualizados", actualizados
+            ));
+
+        } catch (Exception e) {
+            System.err.println("💥 Error en sincronizarPedidos(): " + e.getMessage());
+            if (e.getCause() != null) {
+                System.err.println("📄 Causa interna: " + e.getCause().getMessage());
+            }
+            e.printStackTrace();
+            throw new RuntimeException("Error al guardar pedido completo", e);
+        }
+    }
 
 
     // ==========================================================
@@ -338,6 +451,100 @@ public class ShopifyController {
 
         return cliente;
     }
+
+    // ==========================================================
+    // Mapeo de PEDIDO Shopify → PedidoDTO
+    // ==========================================================
+private PedidoDTO mapearPedidoShopify(JsonNode json) {
+    System.out.println("🔍 Iniciando mapeo de pedido Shopify ID: " + json.path("id").asText());
+    PedidoDTO pedido = new PedidoDTO();
+
+    try {
+        // 🧾 Datos básicos
+        pedido.setCodigoPedido(json.path("id").asText("")); // ID de Shopify
+        pedido.setDocumento(json.path("name").asText(""));  // Ej: "#1003"
+        pedido.setSubtotal(json.path("subtotal_price").asDouble(0.0));
+        pedido.setIgv(json.path("total_tax").asDouble(0.0));
+        pedido.setMontoTotal(json.path("total_price").asDouble(0.0));
+        pedido.setCiudad(json.path("shipping_address").path("province").asText("Lima"));
+        pedido.setObservacion("Pedido importado desde Shopify");
+        System.out.println("✅ Paso 1: Datos básicos mapeados");
+
+        // 💳 Tipo de pago
+        if (json.has("payment_gateway_names") && json.get("payment_gateway_names").isArray()) {
+            pedido.setTipoPago(json.get("payment_gateway_names").get(0).asText("DESCONOCIDO"));
+        } else {
+            pedido.setTipoPago("");
+        }
+        System.out.println("✅ Paso 2: Tipo de pago asignado: " + pedido.getTipoPago());
+
+        // 🧾 Tipo comprobante
+        pedido.setTipoComprobante("BOLETA");
+
+        // 👤 Cliente
+        if (json.hasNonNull("customer")) {
+            JsonNode cliente = json.get("customer");
+            ClienteDTO clienteDTO = new ClienteDTO();
+            clienteDTO.setCodigoCliente(cliente.path("id").asText(""));
+            clienteDTO.setNombres(
+                    (cliente.path("first_name").asText("") + " " + cliente.path("last_name").asText("")).trim());
+            pedido.setCliente(clienteDTO);
+            System.out.println("✅ Paso 3: Cliente mapeado -> " + clienteDTO.getNombres());
+        } else {
+            System.out.println("⚠️ Pedido sin cliente (Shopify ID: " + json.path("id").asText() + ")");
+        }
+
+        // 🚚 Empresa de entrega
+        EmpresaEntregaDTO empresa = new EmpresaEntregaDTO();
+        empresa.setIdEmpresaEntrega(1);
+        pedido.setEmpresaEntrega(empresa);
+
+        // 👤 Usuario
+        UsuarioDTO usuario = new UsuarioDTO();
+        usuario.setIdUsuario(1);
+        pedido.setUsuario(usuario);
+
+        // 📦 Estado del pedido
+        EstadoPedidoDTO estado = new EstadoPedidoDTO();
+        estado.setIdEstadoPedido(1);
+        pedido.setEstadoPedido(estado);
+        System.out.println("✅ Paso 4: Usuario, empresa y estado asignados");
+
+        // 💰 Detalles
+        if (json.has("line_items") && json.get("line_items").isArray()) {
+            List<PedidoDetalleDTO> detalles = new ArrayList<>();
+
+            for (JsonNode item : json.get("line_items")) {
+                PedidoDetalleDTO detalle = new PedidoDetalleDTO();
+                ProductoDTO producto = new ProductoDTO();
+
+                producto.setIdProducto(0); // aún no mapeas ID interno
+                producto.setCodProducto(item.path("product_id").asText(""));
+                detalle.setProducto(producto);
+
+                detalle.setCantidad(item.path("quantity").asInt(1));
+                detalle.setPrecioUnitario(item.path("price").asDouble(0.0));
+                detalle.setPrecioTotal(
+                        item.path("price").asDouble(0.0) * item.path("quantity").asInt(1));
+
+                detalles.add(detalle);
+            }
+
+            pedido.setDetalles(detalles);
+            System.out.println("✅ Paso 5: Detalles procesados (" + detalles.size() + " ítems)");
+        } else {
+            System.out.println("⚠️ Pedido sin detalles de producto (Shopify ID: " + json.path("id").asText() + ")");
+        }
+
+        System.out.println("✅ Mapeo completado correctamente para pedido: " + pedido.getDocumento());
+        return pedido;
+
+    } catch (Exception e) {
+        System.err.println("💥 [MAPEO ERROR] Pedido Shopify ID: " + json.path("id").asText());
+        e.printStackTrace();
+        throw e; // vuelve a lanzar para que el controlador lo capture
+    }
+}
 
 
 }

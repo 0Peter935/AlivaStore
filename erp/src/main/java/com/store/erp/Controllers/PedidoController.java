@@ -28,8 +28,14 @@ public class PedidoController {
     private PedidoService pedidoService;
 
     @GetMapping
-    public List<PedidoDTO> listarPedidos() {
-        return pedidoService.listarPedidos();
+    public ResponseEntity<List<PedidoDTO>> listarPedidos() {
+        try {
+            List<PedidoDTO> pedidos = pedidoService.listarPedidos();
+            return ResponseEntity.ok(pedidos);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/{id}")

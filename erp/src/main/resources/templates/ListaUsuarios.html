@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ALIVA PERÚ - Dashboard</title>
+    <script src="/js/global-preload.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/tailwind-config.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"
+    />
+  </head>
+  <body class="h-full bg-gray-100">
+    <div class="flex h-full">
+      <div id="sidebar-container"></div>
+
+      <div class="flex-1 flex flex-col">
+        <div id="header-container"></div>
+
+        <main
+          id="main-content"
+          class="flex-1 p-6 overflow-y-auto h-[calc(100vh-80px)]"
+        >
+          <div class="flex-1 p-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8">
+              Lista de Usuarios
+            </h1>
+
+            <div class="mb-6 flex items-end gap-6">
+              <div class="flex-1 relative group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+                >
+                  <i
+                    class="fa-solid fa-magnifying-glass text-gray-300 group-hover:text-aliva-purple focus-within:text-aliva-purple"
+                  ></i>
+                </div>
+                <input
+                  type="text"
+                  id="searchBox"
+                  placeholder="Buscar en cualquier columna..."
+                  class="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-blue focus:border-transparent"
+                />
+              </div>
+
+              <div class="flex gap-3">
+                <button
+                  onclick="abrirModalAgregar()"
+                  class="bg-aliva-blue ring-2 ring-aliva-blue hover:bg-white text-white p-3 rounded-lg shadow-sm transition-colors group"
+                >
+                  <i
+                    class="fa-solid fa-user-plus group-hover:text-aliva-blue"
+                  ></i>
+                </button>
+
+                <button
+                  class="bg-aliva-blue ring-2 ring-aliva-blue hover:bg-white text-white p-3 rounded-lg shadow-sm transition-colors group"
+                >
+                  <i
+                    class="fa-solid fa-download group-hover:text-aliva-blue"
+                  ></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Data Table -->
+            <div
+              class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+            >
+              <div
+                id="usuariosGrid"
+                class="ag-theme-alpine"
+                style="height: 440px; width: 100%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Modal Agregar Usuario -->
+          <div
+            id="modalAgregarUsuario"
+            class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          >
+            <div
+              class="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto"
+            >
+              <div class="flex items-center justify-between p-6 border-b">
+                <h2 class="text-xl font-bold text-gray-900">
+                  <i class="fa-solid fa-user-plus text-blue-600"></i> Agregar
+                  Nuevo Usuario
+                </h2>
+                <button
+                  data-modal-close="modalAgregarUsuario"
+                  type="button"
+                  class="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+              </div>
+
+              <div class="p-6">
+                <form id="formAgregarUsuario" class="space-y-4">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                        >Nombres:</label
+                      >
+                      <input
+                        id="nombresNuevo"
+                        type="text"
+                        oninput="generarUsuarioAuto()"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                        >Apellido Paterno:</label
+                      >
+                      <input
+                        id="apPaternoNuevo"
+                        type="text"
+                        oninput="generarUsuarioAuto()"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                        >Apellido Materno:</label
+                      >
+                      <input
+                        id="apMaternoNuevo"
+                        type="text"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                        >Correo:</label
+                      >
+                      <input
+                        id="correoNuevo"
+                        type="email"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                        >Rol:</label
+                      >
+                      <select
+                        id="rolNuevo"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+                      >
+                        <option value="">Seleccione un rol...</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                        >Teléfono:</label
+                      >
+                      <input
+                        id="telefonoNuevo"
+                        type="text"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center"
+                  >
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                        >Usuario:</label
+                      >
+                      <input
+                        id="usuarioNuevo"
+                        type="text"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+                        placeholder="Se genera automáticamente..."
+                        readonly
+                        required
+                      />
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-1 gap-3">
+                      <div>
+                        <span class="text-sm font-medium text-gray-700"
+                          >Estado:</span
+                        >
+                      </div>
+                      <div class="flex items-center">
+                        <button
+                          id="toggleEstadoNuevo"
+                          type="button"
+                          class="relative w-12 h-6 mr-4 flex items-center rounded-full transition-colors duration-300 bg-blue-500"
+                          onclick="toggleEstadoNuevoUsuario()"
+                        >
+                          <span
+                            class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 translate-x-6"
+                          ></span>
+                        </button>
+                        <span
+                          id="labelEstadoNuevo"
+                          class="text-blue-500 font-semibold"
+                          >Activo</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1"
+                      >Contraseña:</label
+                    >
+                    <div class="relative">
+                      <input
+                        id="claveNuevo"
+                        type="password"
+                        placeholder="********"
+                        class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aliva-blue focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onclick="togglePasswordVisibility(this)"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-aliva-blue hover:text-aliva-purple"
+                      >
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-end gap-3 pt-6 border-t">
+                    <button
+                      data-modal-close="modalAgregarUsuario"
+                      type="button"
+                      class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onclick="agregarUsuario()"
+                      class="px-6 py-2 bg-aliva-blue text-white rounded-lg hover:bg-aliva-purple transition"
+                    >
+                      Guardar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Actualizar Usuario -->
+          <div
+            id="modalActualizarUsuario"
+            class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden backdrop-blur-sm"
+          >
+            <div
+              class="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto"
+            >
+              <!-- Header -->
+              <div class="flex items-center justify-between p-4 border-b">
+                <h2
+                  class="text-xl font-semibold text-gray-800 flex items-center gap-2"
+                >
+                  <i class="fa-solid fa-user-pen text-blue-600"></i> Actualizar
+                  Usuario
+                </h2>
+                <button
+                  data-modal-close="modalActualizarUsuario"
+                  class="text-gray-400 hover:text-gray-600 transition"
+                >
+                  <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+              </div>
+
+              <!-- Body -->
+              <div class="p-4">
+                <form id="formActualizarUsuario" class="space-y-4">
+                  <input type="hidden" id="idUsuarioActualizar" />
+
+                  <!-- Nombres y Apellido Paterno -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        class="block text-xs font-semibold text-gray-600 mb-1"
+                        >Nombres Completos:</label
+                      >
+                      <input
+                        id="nombresActualizar"
+                        type="text"
+                        placeholder="Ingrese nombres"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-xs font-semibold text-gray-600 mb-1"
+                        >Apellido Paterno:</label
+                      >
+                      <input
+                        id="apellidoPaternoActualizar"
+                        type="text"
+                        placeholder="Ingrese apellido paterno"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Apellido Materno y Correo -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        class="block text-xs font-semibold text-gray-600 mb-1"
+                        >Apellido Materno:</label
+                      >
+                      <input
+                        id="apellidoMaternoActualizar"
+                        type="text"
+                        placeholder="Ingrese apellido materno"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-xs font-semibold text-gray-600 mb-1"
+                        >Correo Electrónico:</label
+                      >
+                      <input
+                        id="correoActualizar"
+                        type="email"
+                        placeholder="Ingrese correo"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Teléfono y Usuario -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        class="block text-xs font-semibold text-gray-600 mb-1"
+                        >Teléfono:</label
+                      >
+                      <input
+                        id="telefonoActualizar"
+                        type="tel"
+                        placeholder="Ingrese teléfono"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-xs font-semibold text-gray-600 mb-1"
+                        >Usuario:</label
+                      >
+                      <input
+                        id="usuarioActualizar"
+                        type="text"
+                        disabled
+                        class="w-full px-3 py-2 border border-gray-200 bg-gray-100 rounded-lg text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Contraseña y Rol -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        class="block text-xs font-semibold text-gray-600 mb-1"
+                        >Contraseña:</label
+                      >
+                      <div class="relative">
+                        <input
+                          id="claveActualizar"
+                          type="password"
+                          placeholder="********"
+                          class="w-full px-3 py-2 pr-9 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onclick="togglePasswordVisibility(this)"
+                          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-600"
+                        >
+                          <i class="fa-solid fa-eye text-sm"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        class="block text-xs font-semibold text-gray-600 mb-1"
+                        >Rol:</label
+                      >
+                      <select
+                        id="rolActualizar"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      >
+                        <option value="">Cargando roles...</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Fecha de registro -->
+                  <div>
+                    <label
+                      class="block text-xs font-semibold text-gray-600 mb-1"
+                      >Fecha Registro:</label
+                    >
+                    <input
+                      id="fechaRegistroActualizar"
+                      type="text"
+                      disabled
+                      class="w-full px-3 py-2 border border-gray-200 bg-gray-100 rounded-lg text-sm"
+                    />
+                  </div>
+
+                  <!-- Botones -->
+                  <div class="flex justify-end gap-3 pt-4 border-t mt-4">
+                    <button
+                      data-modal-close="modalActualizarUsuario"
+                      type="button"
+                      class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onclick="actualizarUsuario()"
+                      class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition"
+                    >
+                      Guardar Cambios
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/ag-grid-community@31.3.0/dist/ag-grid-community.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="/js/navar.js" defer></script>
+    <script src="/js/header.js" defer></script>
+
+    <script src="/js/ListaUsuarios.js" defer></script>
+  </body>
+</html>

@@ -1,7 +1,13 @@
 // DetallePedido.js - versión con logs y guardado robusto
 (() => {
-  if (window.detallePedido_debug_inicializado) return;
-  window.detallePedido_debug_inicializado = true;
+  if (window.detallePedido_inicializado) return;
+  window.detallePedido_inicializado = true;
+
+  console.log("🧩 Iniciando módulo DetallePedido...");
+
+  let gridApiDetalle = null;
+  let productosDisponibles = [];
+  let detallesPedido = [];
 
   // ========= CONFIG =========
   const API_BASE = ""; // deja vacío si sirves en mismo dominio, o usa "http://localhost:8080"
@@ -805,6 +811,10 @@
     }
   }
 
-  // Exponer init al loader de vistas
-  window.initDetallePedido = window.initDetallePedido;
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.initDetallePedido) {
+      console.log("🚀 Ejecutando initDetallePedido automáticamente...");
+      window.initDetallePedido();
+    }
+  });
 })();

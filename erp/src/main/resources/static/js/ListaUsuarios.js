@@ -1,11 +1,12 @@
-(() => {
-  // Evita ejecución duplicada si ya se cargó
-  if (window.usuariosGridInicializado) return;
-  window.usuariosGridInicializado = true;
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("🧩 Inicializando ListaUsuarios...");
 
+  // Variables globales
   let gridApiUsuarios = null;
 
-  // Inicializa la tabla de usuarios
+  // Iniciar la tabla cuando el DOM esté listo
+  initListaUsuarios();
+
   async function initListaUsuarios() {
     const gridDiv = document.querySelector("#usuariosGrid");
     if (!gridDiv) return;
@@ -122,12 +123,13 @@
       if (!res.ok) throw new Error("Error al obtener usuarios");
       const data = await res.json();
       gridApiUsuarios.setGridOption("rowData", data);
+      console.log(`✅ ${data.length} usuarios cargados`);
     } catch (err) {
-      console.error("Error al cargar usuarios:", err);
+      console.error("❌ Error al cargar usuarios:", err);
       Swal.fire({
         icon: "error",
-        title: "Error",
-        text: "No se pudieron cargar los usuarios",
+        title: "Error al cargar",
+        text: "No se pudieron obtener los usuarios del servidor.",
       });
     }
   }
@@ -156,38 +158,35 @@
     }
   }
 
-  // Generar nombre de usuario automático
-  window.generarUsuarioAuto = function () {
-    const nombre = document.getElementById("nombresNuevo").value.trim();
-    const apellido = document.getElementById("apPaternoNuevo").value.trim();
-    const usuarioInput = document.getElementById("usuarioNuevo");
+  // Cambiar estado
+  window.toggleEstadoUsuario = async function (idUsuario, btn) {
+    const isActive = btn.classList.contains("bg-blue-500");
+    const newState = !isActive;
 
-    if (nombre && apellido) {
-      const user = (
-        nombre.charAt(0) + apellido.replace(/\s+/g, "")
-      ).toUpperCase();
-      usuarioInput.value = user;
-    }
-  };
+    btn.classList.toggle("bg-blue-500", newState);
+    btn.classList.toggle("bg-red-500", !newState);
+    const span = btn.querySelector("span");
+    span.classList.toggle("translate-x-5", newState);
 
-  // Toggle estado en formulario nuevo usuario
-  window.toggleEstadoNuevoUsuario = function () {
-    const toggle = document.getElementById("toggleEstadoNuevo");
-    const label = document.getElementById("labelEstadoNuevo");
-    const circle = toggle.querySelector("span");
+    try {
+      const res = await fetch(`/api/usuarios/${idUsuario}/estado`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado: newState }),
+      });
 
-    const isActive = toggle.classList.contains("bg-blue-500");
+      if (!res.ok) throw new Error("Error al actualizar estado");
+    } catch (err) {
+      console.error(err);
 
-    if (isActive) {
-      toggle.classList.replace("bg-blue-500", "bg-red-500");
-      circle.classList.remove("translate-x-6");
-      label.textContent = "Inactivo";
-      label.classList.replace("text-blue-500", "text-red-500");
-    } else {
-      toggle.classList.replace("bg-red-500", "bg-blue-500");
-      circle.classList.add("translate-x-6");
-      label.textContent = "Activo";
-      label.classList.replace("text-red-500", "text-blue-500");
+      btn.classList.toggle("bg-blue-500", !newState);
+      btn.classList.toggle("bg-red-500", newState);
+      span.classList.toggle("translate-x-5", !newState);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo cambiar el estado del usuario",
+      });
     }
   };
 
@@ -244,35 +243,38 @@
     setTimeout(() => button.classList.remove("scale-110"), 150);
   };
 
-  // Cambiar estado
-  window.toggleEstadoUsuario = async function (idUsuario, btn) {
-    const isActive = btn.classList.contains("bg-blue-500");
-    const newState = !isActive;
+  // Generar nombre de usuario automático
+  window.generarUsuarioAuto = function () {
+    const nombre = document.getElementById("nombresNuevo").value.trim();
+    const apellido = document.getElementById("apPaternoNuevo").value.trim();
+    const usuarioInput = document.getElementById("usuarioNuevo");
 
-    btn.classList.toggle("bg-blue-500", newState);
-    btn.classList.toggle("bg-red-500", !newState);
-    const span = btn.querySelector("span");
-    span.classList.toggle("translate-x-5", newState);
+    if (nombre && apellido) {
+      const user = (
+        nombre.replace(/\s+/g, "") + apellido.replace(/\s+/g, "")
+      ).toUpperCase();
+      usuarioInput.value = user;
+    }
+  };
 
-    try {
-      const res = await fetch(`/api/usuarios/${idUsuario}/estado`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ estado: newState }),
-      });
+  // Toggle estado en formulario nuevo usuario
+  window.toggleEstadoNuevoUsuario = function () {
+    const toggle = document.getElementById("toggleEstadoNuevo");
+    const label = document.getElementById("labelEstadoNuevo");
+    const circle = toggle.querySelector("span");
 
-      if (!res.ok) throw new Error("Error al actualizar estado");
-    } catch (err) {
-      console.error(err);
+    const isActive = toggle.classList.contains("bg-blue-500");
 
-      btn.classList.toggle("bg-blue-500", !newState);
-      btn.classList.toggle("bg-red-500", newState);
-      span.classList.toggle("translate-x-5", !newState);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo cambiar el estado del usuario",
-      });
+    if (isActive) {
+      toggle.classList.replace("bg-blue-500", "bg-red-500");
+      circle.classList.remove("translate-x-6");
+      label.textContent = "Inactivo";
+      label.classList.replace("text-blue-500", "text-red-500");
+    } else {
+      toggle.classList.replace("bg-red-500", "bg-blue-500");
+      circle.classList.add("translate-x-6");
+      label.textContent = "Activo";
+      label.classList.replace("text-red-500", "text-blue-500");
     }
   };
 
@@ -286,6 +288,7 @@
       document.getElementById("apMaternoNuevo").value = "";
       document.getElementById("correoNuevo").value = "";
       document.getElementById("telefonoNuevo").value = "";
+      document.getElementById("usuarioNuevo").value = "";
       document.getElementById("claveNuevo").value = "";
       document.getElementById("rolNuevo").value = "";
 
@@ -471,7 +474,4 @@
       });
     }
   };
-
-  // Exponer init manualmente (por si cambias de vista sin recargar)
-  window.initListaUsuarios = initListaUsuarios;
-})();
+});

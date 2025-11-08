@@ -1,7 +1,6 @@
 package com.store.erp.Repo;
 
 import java.math.BigDecimal;
-import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -107,5 +106,56 @@ public class PedidoRepo extends Mappers {
             }
         });
     }
+
+    public void sincronizarPedidos(PedidoDTO pedido) {
+        jdbcTemplate.execute((Connection con) -> {
+            try {
+                SQLServerDataTable tvp = new SQLServerDataTable();
+                tvp.addColumnMetadata("ID_PRODUCTO", java.sql.Types.INTEGER);
+                tvp.addColumnMetadata("CANTIDAD", java.sql.Types.INTEGER);
+                tvp.addColumnMetadata("PRECIO_UNITARIO", java.sql.Types.DECIMAL);
+                tvp.addColumnMetadata("PRECIO_TOTAL", java.sql.Types.DECIMAL);
+
+                if (pedido.getDetalles() != null) {
+                    for (var det : pedido.getDetalles()) {
+                        tvp.addRow(
+                            det.getProducto().getIdProducto(),
+                            det.getCantidad(),
+                            det.getPrecioUnitario(),
+                            det.getPrecioTotal()
+                        );
+                    }
+                }
+
+                String sql = "EXEC SP_PEDIDO_UPSERT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+
+                try (PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setString(1, pedido.getCodigoPedido());
+                    ps.setInt(2, pedido.getUsuario().getIdUsuario());
+                    ps.setInt(3, pedido.getCliente().getIdCliente());
+                    ps.setInt(4, pedido.getEstadoPedido().getIdEstadoPedido());
+                    ps.setInt(5, pedido.getEmpresaEntrega().getIdEmpresaEntrega());
+                    ps.setString(6, pedido.getDocumento());
+                    ps.setBigDecimal(7, BigDecimal.valueOf( pedido.getSubtotal()));
+                    ps.setBigDecimal(8, BigDecimal.valueOf(pedido.getIgv()));
+                    ps.setBigDecimal(9, BigDecimal.valueOf(pedido.getAdelanto()));
+                    ps.setBigDecimal(10, BigDecimal.valueOf( pedido.getMontoTotal()));
+                    ps.setString(11, pedido.getCiudad());
+                    ps.setString(12, pedido.getTipoPago());
+                    ps.setString(13, pedido.getTipoComprobante());
+                    ps.setBigDecimal(14, BigDecimal.valueOf( pedido.getMontoCobrado()));
+                    ps.setString(15, pedido.getObservacion());
+                    ps.setObject(16, tvp);
+
+                    ps.execute();
+                }
+
+                return null;
+            } catch (Exception e) {
+                throw new RuntimeException("Error al guardar pedido completo", e);
+            }
+        });
+    }
+
 
 }
