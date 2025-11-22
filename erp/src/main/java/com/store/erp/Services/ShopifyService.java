@@ -72,6 +72,7 @@ public class ShopifyService {
 
             System.out.println("🌀 [Shopify] Actualizando estado de producto " + producto.getCodProducto() + " → " + estado);
             return sendShopifyRequest(endpoint, "PUT", body);
+            
         } catch (Exception e) {
             System.err.println("💥 [Shopify] Error al actualizar estado del producto: " + e.getMessage());
             return false;

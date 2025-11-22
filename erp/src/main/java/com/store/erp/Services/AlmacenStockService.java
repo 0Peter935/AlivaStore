@@ -14,12 +14,12 @@ public class AlmacenStockService {
     @Autowired
     private AlmacenStockRepo almacenStockRepo;
 
-    public List<AlmacenStockDTO> listarPorProducto(int idProducto) {
-        return almacenStockRepo.listarPorProducto(idProducto);
+    public List<AlmacenStockDTO> listarPorVariante(String codVariante) {
+        return almacenStockRepo.listarPorProducto(codVariante);
     }
 
 
-    public void guardarStockProducto(int idProducto, List<AlmacenStockDTO> detalleStock) {
-        almacenStockRepo.guardarStockProducto(idProducto, detalleStock);
+    public void guardarStockProducto(String codVariante, List<AlmacenStockDTO> detalleStock) {
+        almacenStockRepo.guardarStockProducto(codVariante, detalleStock);
     }
 }

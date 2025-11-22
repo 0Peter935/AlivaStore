@@ -10,17 +10,17 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductoDTO {
+public class VarianteProductoDTO {
 
-    private int idProducto;
+    private int idVariante;
     private String codProducto;
-    private String descProducto;
-    private String img;
-    private Boolean regalo;
-    private Boolean estado;
+    private String codVariante;
+    private String titulo;
+    private Double precio;
+    private String imgVariante;
     private OffsetDateTime fechaReg;
     private OffsetDateTime fechaAct;
 
-    private List<VarianteProductoDTO> variante;
+    private List<AlmacenStockDTO> almacenStock;
 
 }

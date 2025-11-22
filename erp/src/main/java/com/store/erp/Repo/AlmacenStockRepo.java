@@ -16,22 +16,20 @@ public class AlmacenStockRepo extends Mappers {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public List<AlmacenStockDTO> listarPorProducto(int idProducto) {
+    public List<AlmacenStockDTO> listarPorProducto(String codVariante) {
         return jdbcTemplate.query(
             "EXEC SP_ALMACEN_STOCK_LISTAR_POR_PRODUCTO ?",
-            new Object[]{idProducto},
+            new Object[]{codVariante},
             (rs, _) -> Mappers.mapAlmacenStock(rs)
         );
     }
 
-    public void guardarStockProducto(int idProducto, List<AlmacenStockDTO> detalleStock) {
+    public void guardarStockProducto(String codVariante, List<AlmacenStockDTO> detalleStock) {
         jdbcTemplate.execute((Connection con) -> {
             try (CallableStatement cs = con.prepareCall("{call SP_ALMACEN_STOCK_GUARDAR_PRODUCTO(?, ?)}")) {
 
-                // 1️⃣ Parámetro: ID_PRODUCTO
-                cs.setInt(1, idProducto);
+                cs.setString(1, codVariante);
 
-                // 2️⃣ Creamos el Table-Valued Parameter
                 SQLServerDataTable tvp = new SQLServerDataTable();
                 tvp.addColumnMetadata("ID_ALMACEN", java.sql.Types.INTEGER);
                 tvp.addColumnMetadata("INVENTARIO", java.sql.Types.INTEGER);
@@ -40,10 +38,8 @@ public class AlmacenStockRepo extends Mappers {
                     tvp.addRow(stock.getAlmacen().getIdAlmacen(), stock.getInventario());
                 }
 
-                // 3️⃣ Pasamos el TVP
                 cs.setObject(2, tvp);
 
-                // 4️⃣ Ejecutamos el SP
                 cs.execute();
                 return null;
             }

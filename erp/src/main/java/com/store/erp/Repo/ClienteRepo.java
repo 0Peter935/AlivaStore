@@ -37,12 +37,21 @@ public class ClienteRepo extends Mappers {
 
     public int sincronizarClientes(ClienteDTO dto) {
         return jdbcTemplate.update(
-            "EXEC SP_CLIENTE_UPSERT ?, ?, ?, ?",
+            "EXEC SP_CLIENTE_SINCRO ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?",
             dto.getCodigoCliente(),
             dto.getNombres(),
+            dto.getDni(),
             dto.getCorreo(),
-            dto.getTelefono()
+            dto.getTelefono(),
+            dto.getCanOrdenes(),
+            dto.getDireccion(),
+            dto.getCiudad(),
+            dto.getProvincia(),
+            dto.getPais(),
+            dto.getFechaReg(),
+            dto.getFechaAct()
         );
     }
+
 
 }

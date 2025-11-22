@@ -4,14 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.store.erp.Models.AlmacenStockDTO;
 import com.store.erp.Models.ProductoDTO;
-import com.store.erp.Models.UsuarioDTO;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.sql.ResultSet;
 import java.util.List;
-import java.util.Map;
 
 @Repository
 public class ProductoRepo extends Mappers {
@@ -20,32 +16,7 @@ public class ProductoRepo extends Mappers {
     private JdbcTemplate jdbcTemplate;
 
     public List<ProductoDTO> listarProductos() {
-        String sql = "EXEC SP_PRODUCTO_LISTAR";
-
-        return jdbcTemplate.query(sql, rs -> {
-            Map<Integer, ProductoDTO> map = new LinkedHashMap<>();
-
-            while (rs.next()) {
-                int idProducto = safeInt(rs, "ID_PRODUCTO");
-
-                ProductoDTO producto = map.get(idProducto);
-                if (producto == null) {
-                    producto = mapProducto(rs);
-                    map.put(idProducto, producto);
-                }
-
-                if (hasColumn(rs, "ID_ALMACEN") || hasColumn(rs, "ID_ALMACEN_STOCK")) {
-                    AlmacenStockDTO stock = mapAlmacenStock(rs);
-                    if (stock != null) {
-                        if (producto.getAlmacenStock() == null)
-                            producto.setAlmacenStock(new ArrayList<>());
-                        producto.getAlmacenStock().add(stock);
-                    }
-                }
-            }
-
-            return new ArrayList<>(map.values());
-        });
+        return jdbcTemplate.query("EXEC SP_PRODUCTO_LISTAR", (ResultSet rs) -> mapProductosConVariantesYStock(rs));
     }
 
     public ProductoDTO obtenerPorId(int idProducto) {
@@ -56,36 +27,33 @@ public class ProductoRepo extends Mappers {
         );
     }
 
-    public ProductoDTO obtenerPorCod(String cod_prod) {
+    public ProductoDTO obtenerPorCod(String codProducto) {
         return jdbcTemplate.queryForObject(
             "EXEC SP_PRODUCTO_BUSCAR_COD ?",
             (rs, _) -> Mappers.mapProducto(rs),
-            cod_prod
+            codProducto
         );
     }
 
-    public void registrarProducto(ProductoDTO p) {
-        jdbcTemplate.update(
-            "EXEC SP_PRODUCTO_INSERTAR ?, ?, ?, ?, ?, ?, ?",
-            p.getCodProducto(),
-            p.getDescProducto(),
-            p.getStock(),
-            p.getPrecio(),
-            p.getImagen(),
-            p.getRegalo(),
-            p.getEstado()
+    public int guardarProducto(ProductoDTO dto) {
+        return jdbcTemplate.update(
+            "EXEC SP_PRODUCTO_GUARDAR ?, ?, ?, ?, ?, ?, ?",
+            dto.getCodProducto(),
+            dto.getDescProducto(),
+            dto.getImg(),
+            dto.getRegalo(),
+            dto.getEstado(),
+            dto.getFechaReg(),
+            dto.getFechaAct()
         );
     }
 
     public void actualizarProducto(ProductoDTO p) {
         jdbcTemplate.update(
-            "EXEC SP_PRODUCTO_ACTUALIZAR ?, ?, ?, ?, ?, ?",
+            "EXEC SP_PRODUCTO_ACTUALIZAR ?, ?, ?",
             p.getCodProducto(),
             p.getDescProducto(),
-            p.getStock(),
-            p.getPrecio(),
-            p.getImagen(),
-            p.getEstado()
+            p.getImg()
         );
     }
 
@@ -101,19 +69,6 @@ public class ProductoRepo extends Mappers {
         jdbcTemplate.update(
             "EXEC SP_PRODUCTO_CAMBIAR_ESTADO ?, ?",
             idProducto, estado
-        );
-    }
-
-    public int sincronizarProducto(ProductoDTO dto) {
-        return jdbcTemplate.update(
-            "EXEC SP_PRODUCTO_UPSERT ?, ?, ?, ?, ?, ?, ?",
-            dto.getCodProducto(),
-            dto.getDescProducto(),
-            dto.getPrecio(),
-            dto.getStock(),
-            dto.getImagen(),
-            dto.getRegalo(),
-            dto.getEstado()
         );
     }
 

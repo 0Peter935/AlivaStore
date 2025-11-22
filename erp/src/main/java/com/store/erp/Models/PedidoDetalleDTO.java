@@ -10,8 +10,10 @@ import lombok.NoArgsConstructor;
 public class PedidoDetalleDTO {
     
     private int idDetallePedido;
-    private int idPedido;
-    private ProductoDTO producto;
+    private String codPedido;
+    private String codProducto;
+    private String codVariante;
+    private String nombreProducto;
     private int cantidad;
     private double precioUnitario;
     private double precioTotal;

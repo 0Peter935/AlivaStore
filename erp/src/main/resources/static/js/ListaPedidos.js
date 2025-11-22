@@ -55,17 +55,31 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       {
         headerName: "Estado",
-        field: "estado.descripcion",
+        field: "estadoPedido.descripcion",
         width: 160,
         cellRenderer: (params) => {
-          const estado = params.data?.estado?.descripcion ?? "Desconocido";
+          const estado = params.value?.toUpperCase() || "";
+
           const color =
-            estado === "ENTREGADO"
+            estado === "PENDIENTE"
+              ? "bg-yellow-100 text-yellow-700"
+              : estado === "RECHAZADO"
+              ? "bg-red-100 text-red-700"
+              : estado === "APROBADO"
+              ? "bg-blue-100 text-blue-700"
+              : estado === "ENVIADO"
+              ? "bg-indigo-100 text-indigo-700"
+              : estado === "COMPLETADO"
               ? "bg-green-100 text-green-700"
               : estado === "CANCELADO"
-              ? "bg-red-100 text-red-700"
-              : "bg-yellow-100 text-yellow-700";
-          return `<span class="px-3 py-1 rounded-full text-xs font-semibold ${color}">${estado}</span>`;
+              ? "bg-gray-200 text-gray-700"
+              : "bg-slate-100 text-slate-700";
+
+          return `
+            <span class="px-3 py-1 rounded-full text-xs font-semibold ${color}">
+              ${estado}
+            </span>
+          `;
         },
       },
       {
@@ -86,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     .map(
                       (d) => `
                       <div class="flex justify-between text-sm">
-                        <span>${d.producto.descProducto}</span>
+                        <span>${d.nombreProducto}</span>
                         <span>x${d.cantidad}</span>
                       </div>`
                     )
@@ -169,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       gridApiPedidos.setGridOption("rowData", data);
     } catch (err) {
-      console.error("❌ Error al cargar pedidos:", err);
+      console.error("Error al cargar pedidos:", err);
       Swal.fire({
         icon: "error",
         title: "Error",

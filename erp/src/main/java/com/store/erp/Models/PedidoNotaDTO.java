@@ -7,11 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AlmacenStockDTO {
-
-    private int idAlmacenStock;
-    private String codProducto;
-    private int inventario;
-    private AlmacenDTO almacen;
+public class PedidoNotaDTO {
+  
+  private int idNotaPedido;
+  private String codPedido;
+  private String titulo;
+  private String descripcion;
 
 }

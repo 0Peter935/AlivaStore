@@ -64,17 +64,18 @@ public class ProductoController {
         try {
             boolean estado = Boolean.parseBoolean(body.get("estado").toString());
 
-            // 🔹 Actualizar en la BD
-            productoService.cambiarEstado(idProducto, estado);
-
-            // 🔹 Obtener producto para sincronizar
             ProductoDTO producto = productoService.obtenerPorId(idProducto);
+            
             if (producto == null)
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "Producto no encontrado"));
 
-            // 🔹 Sincronizar con Shopify (servicio modular)
+            // Actualizar en Shopify
             boolean ok = shopifyService.actualizarEstadoProducto(producto, estado);
+            System.out.println("Respuesta Shopify OK? " + ok);
+
+            // Actualizar en la BD
+            productoService.cambiarEstado(producto.getIdProducto(), estado);
 
             return ok
                     ? ResponseEntity.ok(Map.of("message", "Estado actualizado en BD y Shopify"))

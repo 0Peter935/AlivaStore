@@ -5,6 +5,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public class RepoUtils {
 
@@ -62,6 +63,12 @@ public class RepoUtils {
         if (!hasColumn(rs, col)) return null;
         java.sql.Timestamp timestamp = rs.getTimestamp(col);
         return timestamp != null ? timestamp.toLocalDateTime() : null;
+    }
+
+    public static OffsetDateTime safeOffsetDateTime(ResultSet rs, String col) throws SQLException {
+        if (!hasColumn(rs, col)) return null;
+        java.sql.Timestamp timestamp = rs.getTimestamp(col);
+        return timestamp != null ? timestamp.toInstant().atOffset(java.time.ZoneOffset.UTC) : null;
     }
 
 }

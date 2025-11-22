@@ -11,3 +11,22 @@
 .animate-fadeIn {
   animation: fadeIn 0.25s ease-out;
 }
+
+.ag-center-cols-container .ag-row[role="row"] > div > div {
+  transition: all 0.25s ease-in-out;
+}
+
+.ag-center-cols-container .ag-row[role="row"] .bg-gradient-to-br {
+  animation: expandRow 0.25s ease-in-out forwards;
+}
+
+@keyframes expandRow {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

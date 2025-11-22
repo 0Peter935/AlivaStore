@@ -1,14 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🧩 Iniciando ListaProductos...");
-
-  let gridApiProductos = null;
-  let almacenesDisponibles = [];
-  let stockActual = [];
-  let idProductoSeleccionado = null;
+  let gridApiProductos;
 
   initListaProductos();
 
-  // Inicializar la tabla
   async function initListaProductos() {
     const gridDiv = document.querySelector("#productosGrid");
     if (!gridDiv) return;
@@ -20,9 +14,120 @@ document.addEventListener("DOMContentLoaded", () => {
         width: 70,
         sortable: false,
         filter: false,
+        cellRenderer: (p) => {
+          // --- Si es fila detalle, renderiza el acordeón ---
+          if (p.data.__type === "detail") {
+            const variantes = p.data.variante || [];
+
+            if (!variantes.length) {
+              return `
+      <div class="bg-gray-50 p-4 text-center text-gray-400 italic rounded-lg border border-gray-200">
+        No se registran variantes para este producto.
+      </div>`;
+            }
+
+            const filas = variantes
+              .map((v) => {
+                const totalInv = (v.almacenStock || []).reduce(
+                  (a, s) => a + (s.inventario || 0),
+                  0
+                );
+
+                // --- POPOVER DETALLADO POR ALMACÉN ---
+                const detalleAlmacenes = (v.almacenStock || [])
+                  .map(
+                    (a) => `
+          <div class="flex justify-between text-[13px] text-gray-700 border-b last:border-none py-1">
+            <span>${a.almacen?.descripcion || "-"}</span>
+            <span class="font-semibold">${a.inventario} und.</span>
+          </div>`
+                  )
+                  .join("");
+
+                return `
+      <tr class="border-b last:border-none hover:bg-indigo-50/40 transition">
+        <td class="py-3 px-4 font-medium text-gray-800">${v.titulo ?? "-"}</td>
+
+        <td class="py-3 px-4 text-gray-700">S/. ${Number(v.precio || 0).toFixed(
+          2
+        )}</td>
+
+        <!-- Inventario -->
+        <td class="py-3 px-4">
+          <div class="relative group cursor-pointer text-indigo-700 font-medium">
+            ${totalInv} unidades
+
+            <!-- Tooltip -->
+            <div class="absolute left-0 -top-2 -translate-y-full hidden group-hover:block
+    bg-white shadow-xl border border-gray-300 rounded-lg p-3 w-64 z-50">
+              <p class="font-semibold text-indigo-700 mb-2 text-[14px]">
+                Inventario por almacén
+              </p>
+              ${detalleAlmacenes || "<p class='text-gray-400'>Sin stock</p>"}
+            </div>
+          </div>
+        </td>
+
+        <!-- Estado -->
+        <td class="py-3 px-4">
+          ${
+            totalInv === 0
+              ? `<span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">Agotado</span>`
+              : totalInv <= 10
+              ? `<span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-semibold">Poco stock</span>`
+              : `<span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-semibold">En stock</span>`
+          }
+        </td>
+
+        <!-- Acciones -->
+        <td class="py-3 px-4 text-center">
+          <div class="flex justify-center gap-4 text-[15px]">
+            <button
+              onclick='abrirModalStock(${JSON.stringify(v)})'
+              class="text-yellow-500 hover:text-yellow-700 transition-colors"
+              title="Editar stock del producto"
+            >
+              <i class="fa-solid fa-boxes-stacked"></i>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+              })
+              .join("");
+
+            return `
+  <div class="col-span-full bg-gradient-to-br from-indigo-50 to-white rounded-xl shadow-sm border border-indigo-100 p-5 mt-2">
+    <p class="text-[15px] font-semibold text-indigo-700 uppercase tracking-wide mb-3">
+      Variantes del producto
+    </p>
+
+    <div class="overflow-visible rounded-lg border border-gray-200 bg-white relative">
+      <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-[13px] border-b">
+          <tr>
+            <th class="py-2 px-4 text-left font-semibold">Título</th>
+            <th class="py-2 px-4 text-left font-semibold">Precio</th>
+            <th class="py-2 px-4 text-left font-semibold">Inventario</th>
+            <th class="py-2 px-4 text-left font-semibold">Estado</th>
+            <th class="py-2 px-4 text-center font-semibold">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+    </div>
+  </div>`;
+          }
+
+          // --- Fila normal ---
+          return `<span class="font-semibold text-gray-700">${p.value}</span>`;
+        },
+        colSpan: (p) =>
+          p.data.__type === "detail"
+            ? p.columnApi.getAllDisplayedColumns().length
+            : 1,
       },
       {
-        headerName: "Código Producto",
+        headerName: "Código Prod.",
         field: "codProducto",
         sortable: true,
         filter: true,
@@ -38,71 +143,74 @@ document.addEventListener("DOMContentLoaded", () => {
         filter: true,
       },
       {
-        headerName: "Precio",
-        field: "precio",
-        sortable: true,
-        filter: true,
-        cellRenderer: (params) => {
-          const value = params.value ?? 0;
-          return `<span class="font-semibold text-blue-700">S/. ${value.toFixed(
-            2
-          )}</span>`;
-        },
-      },
-      {
-        headerName: "Stock Shopify",
-        field: "stock",
-        sortable: true,
-        filter: true,
-      },
-      {
-        headerName: "Inventario en Almacenes",
-        field: "almacenStock",
-        flex: 1.5,
+        headerName: "Inventario por Variante",
+        field: "variante",
         filter: false,
+        autoHeight: true,
         cellRenderer: (params) => {
-          const almacenStock = params.value || [];
-          const total = almacenStock.reduce(
-            (sum, a) => sum + (a.inventario || 0),
-            0
-          );
+          const variantes = params.value || [];
 
-          // Crear tooltip flotante (popper)
+          // 🔹 Total general (sumando inventarios de todas las variantes)
+          const total = variantes.reduce((sum, v) => {
+            const sub = (v.almacenStock || []).reduce(
+              (s, a) => s + (a.inventario || 0),
+              0
+            );
+            return sum + sub;
+          }, 0);
+
+          // 🔹 Tooltip dinámico
           const tooltip = document.createElement("div");
-          tooltip.className =
-            "hidden absolute bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[180px] z-[9999]";
-          tooltip.innerHTML = `
-      <p class="text-sm font-semibold text-indigo-600 mb-1">Detalle por almacén</p>
-      ${
-        almacenStock.length > 0
-          ? almacenStock
-              .map(
-                (a) => `
-                <div class="flex justify-between text-sm">
-                  <span class="font-medium text-gray-700">${a.almacen.descripcion}</span>
-                  <span>${a.inventario}</span>
-                </div>`
-              )
-              .join("")
-          : "<p class='text-gray-400 text-sm italic'>Sin stock registrado</p>"
-      }
+          tooltip.className = `
+      hidden fixed bg-white border border-gray-200 rounded-xl shadow-xl
+      p-4 text-sm z-[9999] max-w-[90vw] sm:max-w-[380px]
+      overflow-auto transition-all duration-200
     `;
+
+          // 🔹 Contenido del tooltip
+          tooltip.innerHTML = variantes.length
+            ? `
+        <p class="text-[14px] font-semibold text-indigo-700 mb-2 border-b pb-1">
+          Variantes del producto
+        </p>
+        <div class="space-y-2">
+          ${variantes
+            .map((v) => {
+              const totalVar = (v.almacenStock || []).reduce(
+                (sum, a) => sum + (a.inventario || 0),
+                0
+              );
+              return `
+                <div class="text-gray-800 flex flex-wrap items-baseline gap-x-1 text-[13px] leading-snug">
+                  <span class="font-medium">${v.titulo ?? "(Sin título)"}</span>
+                  <span class="text-indigo-700 font-semibold ml-auto whitespace-nowrap">
+                    — ${totalVar} unidades
+                  </span>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      `
+            : `<p class="text-gray-400 italic">Sin variantes registradas</p>`;
+
           document.body.appendChild(tooltip);
 
-          // Crear el contenedor principal
+          // 🔹 Contenedor principal (celda)
           const wrapper = document.createElement("div");
           wrapper.className =
-            "relative cursor-pointer font-semibold text-gray-800 select-none";
-          wrapper.textContent = total;
+            "relative font-semibold text-indigo-700 cursor-pointer hover:text-indigo-900 transition";
+          wrapper.innerHTML = `${total} unidades`;
 
-          // Mostrar tooltip dinámico fuera del grid
+          // 🔹 Mostrar tooltip al pasar el mouse
           wrapper.addEventListener("mouseenter", (e) => {
             const rect = e.target.getBoundingClientRect();
             tooltip.style.display = "block";
-            tooltip.style.left = `${rect.left + rect.width / 2 - 90}px`;
-            tooltip.style.top = `${rect.bottom + 6}px`;
+            tooltip.style.left = `${
+              rect.left + rect.width / 2 - tooltip.offsetWidth / 2
+            }px`;
+            tooltip.style.top = `${rect.bottom + 8}px`;
           });
-
           wrapper.addEventListener("mouseleave", () => {
             tooltip.style.display = "none";
           });
@@ -112,22 +220,29 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       {
         headerName: "Acciones",
-        width: 180,
+        width: 200,
         filter: false,
         cellRenderer: (params) => {
           const producto = params.data;
+          const rowId = params.node.id;
+          const expanded = !!producto._expanded;
           const isActive = producto.estado;
           const esRegalo = producto.regalo;
 
+          // Evita acciones para filas detalle
+          if (producto.__type === "detail") return "";
+
           return `
       <div class="flex justify-center items-center gap-3">
-        <!-- Editar stock -->
+        <!-- Mostrar/ocultar variantes -->
         <button
-          onclick='abrirModalStock(${JSON.stringify(producto)})'
-          class="text-aliva-yellow hover:text-aliva-purple transition-colors"
-          title="Editar stock del producto"
+          onclick="toggleFilaVariantes('${rowId}', this)"
+          class="text-gray-600 hover:text-indigo-600 transition-transform duration-300"
+          title="Ver variantes"
         >
-          <i class="fa-solid fa-boxes-stacked"></i>
+          <i class="fa-solid fa-chevron-down ${
+            expanded ? "rotate-180 text-indigo-600" : ""
+          } transform transition-transform duration-300"></i>
         </button>
 
         <!-- Cambiar clase regalo -->
@@ -145,7 +260,9 @@ document.addEventListener("DOMContentLoaded", () => {
         <button
           onclick="toggleEstadoProducto(${producto.idProducto}, this)"
           class="relative w-11 h-6 flex items-center rounded-full transition duration-300 
-            ${isActive ? "bg-blue-500" : "bg-red-500"}">
+            ${isActive ? "bg-blue-500" : "bg-red-500"}"
+          title="Activar / Desactivar producto"
+        >
           <span class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-md 
             transform transition-transform duration-300
             ${isActive ? "translate-x-5" : ""}"></span>
@@ -159,22 +276,50 @@ document.addEventListener("DOMContentLoaded", () => {
     const gridOptions = {
       columnDefs,
       rowData: [],
-      pagination: true,
-      paginationPageSize: 10,
-      paginationPageSizeSelector: [10, 20, 50],
       defaultColDef: {
         flex: 1,
         resizable: true,
+        minWidth: 120,
         filter: true,
         sortable: true,
+      },
+      pagination: true,
+      paginationPageSize: 10,
+      getRowHeight: (params) => {
+        if (params.data && params.data.__type === "detail") {
+          const el = document.createElement("div");
+          el.innerHTML = params.data.variante?.length
+            ? `
+        <div class="p-5">
+          <p class="font-semibold mb-2">${
+            params.data.variante.length
+          } variantes</p>
+          <table class="min-w-full"><tbody>${params.data.variante
+            .map((v) => `<tr><td class='py-2'>${v.titulo ?? "-"}</td></tr>`)
+            .join("")}</tbody></table>
+        </div>`
+            : `<div class="p-4 text-gray-400 italic">Sin variantes</div>`;
+
+          document.body.appendChild(el);
+          const height = el.scrollHeight + 90; // margen extra
+          el.remove();
+          return height;
+        }
+
+        return 40; // altura normal para filas regulares
+      },
+      rowClassRules: {
+        "bg-white": (p) => !p.data.__type,
+        "ag-row-no-hover": (p) => p.data.__type === "detail",
       },
       onGridReady: () => loadProductos(),
     };
 
+    // Crear grid
     gridApiProductos = agGrid.createGrid(gridDiv, gridOptions);
     window.gridApiProductos = gridApiProductos;
 
-    // Searchbox global
+    // Filtro global
     const searchBox = document.getElementById("searchBox");
     if (searchBox) {
       searchBox.addEventListener("input", (e) => {
@@ -183,19 +328,67 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Cargar productos
   async function loadProductos() {
     try {
       const res = await fetch("/api/productos");
       if (!res.ok) throw new Error("Error al cargar productos");
       const data = await res.json();
-      gridApiProductos.setGridOption("rowData", data);
+
+      if (window.gridApiProductos) {
+        gridApiProductos.setGridOption("rowData", data);
+      }
+
       console.log(`✅ ${data.length} productos cargados`);
     } catch (err) {
-      console.error("❌ Error al cargar productos:", err);
+      console.error("Error al cargar productos:", err);
       Swal.fire("Error", "No se pudieron cargar los productos.", "error");
     }
   }
+
+  window.toggleFilaVariantes = function (rowId, btn) {
+    const api = gridApiProductos;
+    const rowNode = api.getRowNode(String(rowId));
+    if (!rowNode) return;
+
+    const expanded = !rowNode.data._expanded;
+    rowNode.data._expanded = expanded;
+
+    const icon = btn.querySelector("i");
+    icon.classList.toggle("rotate-180", expanded);
+    icon.classList.toggle("text-indigo-600", expanded);
+
+    const parentKey = rowNode.data.idProducto || rowNode.data.codProducto;
+    const detailId = `d-${parentKey}`;
+    const existingDetail = api.getRowNode(detailId);
+
+    // Si hay otra fila detalle abierta, se cierra
+    api.forEachNode((n) => {
+      if (n.data && n.data.__type === "detail" && n.id !== detailId) {
+        api.applyTransaction({ remove: [n.data] });
+        const parent = api.getRowNode(String(n.data.parentId));
+        if (parent && parent.data) parent.data._expanded = false;
+      }
+    });
+
+    if (expanded && !existingDetail) {
+      const detailRow = {
+        __type: "detail",
+        id: detailId, // 🔹 clave única
+        parentId: parentKey,
+        variante: rowNode.data.variante || [],
+      };
+      api.applyTransaction({
+        add: [detailRow],
+        addIndex: rowNode.rowIndex + 1,
+      });
+
+      // recalcular altura suavemente
+      setTimeout(() => api.resetRowHeights(), 80);
+    } else if (!expanded && existingDetail) {
+      api.applyTransaction({ remove: [existingDetail.data] });
+      setTimeout(() => api.resetRowHeights(), 80);
+    }
+  };
 
   // Cambiar estado de producto
   window.toggleEstadoProducto = async function (idProducto, btn) {
@@ -253,16 +446,16 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // Abrir modal
-  window.abrirModalStock = async function (producto) {
-    const idProducto = producto.idProducto;
-    idProductoSeleccionado = idProducto;
+  window.abrirModalStock = async function (variante) {
+    const idVariante = variante.codVariante;
+    idVarianteSeleccionado = idVariante;
 
     const modal = document.getElementById("modalEditarStock");
     const contenedor = document.getElementById("stockContainer");
     const descripcionEl = document.getElementById("productoDescripcion");
 
     // Mostrar info del producto arriba
-    descripcionEl.textContent = `${producto.codProducto} — ${producto.descProducto}`;
+    descripcionEl.textContent = `${idVariante} — ${variante.titulo}`;
 
     contenedor.innerHTML = `<p class="text-gray-500 italic">Cargando...</p>`;
     modal.classList.remove("hidden");
@@ -272,13 +465,13 @@ document.addEventListener("DOMContentLoaded", () => {
       // Obtener almacenes y stock actual del producto
       const [almRes, stockRes] = await Promise.all([
         fetch("/api/almacenes"),
-        fetch(`/api/almacen-stock/producto/${idProducto}`),
+        fetch(`/api/almacen-stock/producto/${idVariante}`),
       ]);
 
       almacenesDisponibles = await almRes.json();
       stockActual = await stockRes.json();
 
-      document.getElementById("idProductoStock").value = idProducto;
+      document.getElementById("idVarianteStock").value = idVariante;
       renderizarFilasStock();
     } catch (err) {
       console.error("Error al cargar datos de stock:", err);
@@ -419,7 +612,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Guardar cambios
   window.guardarCambiosStock = async function () {
-    const idProducto = document.getElementById("idProductoStock")?.value;
+    const idProducto = document.getElementById("idVarianteStock")?.value;
     const filas = document.querySelectorAll("#stockContainer > div");
 
     // Validar que haya filas
@@ -524,74 +717,6 @@ document.addEventListener("DOMContentLoaded", () => {
         icon: "error",
         title: "Error al guardar",
         text: "Ocurrió un problema al actualizar el stock.",
-      });
-    }
-  };
-
-  // Abrir modal
-  window.abrirModalNuevoProducto = function () {
-    document.getElementById("formNuevoProducto").reset();
-    document.getElementById("modalNuevoProducto").classList.remove("hidden");
-    document.body.classList.add("overflow-hidden");
-  };
-
-  // Cerrar modal
-  window.cerrarModalNuevoProducto = function () {
-    document.getElementById("modalNuevoProducto").classList.add("hidden");
-    document.body.classList.remove("overflow-hidden");
-  };
-
-  // Guardar producto
-  window.guardarNuevoProducto = async function () {
-    const producto = {
-      codProducto: document.getElementById("npCodProducto").value.trim(),
-      descProducto: document.getElementById("npDescProducto").value.trim(),
-      stock: parseInt(document.getElementById("npStock").value) || 0,
-      precio: parseFloat(document.getElementById("npPrecio").value) || 0,
-      imagen: document.getElementById("npImagen").value.trim(),
-      regalo: document.getElementById("npRegalo").checked,
-      estado: document.getElementById("npEstado").checked,
-    };
-
-    // Validación rápida
-    if (
-      !producto.codProducto ||
-      !producto.descProducto ||
-      producto.precio <= 0
-    ) {
-      Swal.fire({
-        icon: "warning",
-        title: "Campos obligatorios",
-        text: "Por favor completa código, descripción y precio válidos.",
-      });
-      return;
-    }
-
-    try {
-      const resp = await fetch("/api/productos/nuevo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(producto),
-      });
-
-      if (!resp.ok) throw new Error(await resp.text());
-
-      Swal.fire({
-        icon: "success",
-        title: "Producto agregado",
-        text: "El nuevo producto fue registrado correctamente.",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-
-      cerrarModalNuevoProducto();
-      loadProductos();
-    } catch (err) {
-      console.error("Error al guardar producto:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error al guardar",
-        text: "No se pudo registrar el producto.",
       });
     }
   };

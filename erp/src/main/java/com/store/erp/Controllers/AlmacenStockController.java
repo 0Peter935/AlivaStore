@@ -17,19 +17,19 @@ public class AlmacenStockController {
     @Autowired
     private AlmacenStockService almacenStockService;
 
-    @GetMapping("/producto/{idProducto}")
-        public ResponseEntity<?> listarStockPorProducto(@PathVariable("idProducto") int idProducto) {
-            List<AlmacenStockDTO> lista = almacenStockService.listarPorProducto(idProducto);
+    @GetMapping("/producto/{codVariante}")
+        public ResponseEntity<?> listarStockPorProducto(@PathVariable("codVariante") String codVariante) {
+            List<AlmacenStockDTO> lista = almacenStockService.listarPorVariante(codVariante);
             return ResponseEntity.ok(lista);
         }
 
     @PutMapping("/producto/{idProducto}")
     public ResponseEntity<?> actualizarStockProducto(
-            @PathVariable("idProducto") int idProducto,
+            @PathVariable("idProducto") String codVariante,
             @RequestBody List<AlmacenStockDTO> detalle) {
 
         try {
-            almacenStockService.guardarStockProducto(idProducto, detalle);
+            almacenStockService.guardarStockProducto(codVariante, detalle);
             return ResponseEntity.ok("Stock actualizado correctamente");
         } catch (Exception e) {
             e.printStackTrace();

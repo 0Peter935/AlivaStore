@@ -30,8 +30,7 @@ public class PedidoController {
     @GetMapping
     public ResponseEntity<List<PedidoDTO>> listarPedidos() {
         try {
-            List<PedidoDTO> pedidos = pedidoService.listarPedidos();
-            return ResponseEntity.ok(pedidos);
+            return ResponseEntity.ok(pedidoService.listarPedidos());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -39,8 +38,8 @@ public class PedidoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> obtenerPedidoPorId(@PathVariable("id") int idPedido) {
-        PedidoDTO pedido = pedidoService.obtenerPedidoPorId(idPedido);
+    public ResponseEntity<?> obtenerPedido(@PathVariable("id") String codPedido) {
+        PedidoDTO pedido = pedidoService.obtenerPedidoPorCod(codPedido);
         if (pedido == null)
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("mensaje", "Pedido no encontrado"));

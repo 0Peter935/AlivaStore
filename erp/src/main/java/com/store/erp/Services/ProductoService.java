@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.store.erp.Models.ProductoDTO;
+import com.store.erp.Models.VarianteProductoDTO;
 import com.store.erp.Repo.ProductoRepo;
+import com.store.erp.Repo.VarianteRepo;
 
 import java.util.List;
 
@@ -14,16 +16,15 @@ public class ProductoService {
     @Autowired
     private ProductoRepo productoRepo;
 
+    @Autowired
+    private VarianteRepo varianteRepo;
+
     public List<ProductoDTO> listarProductos() {
         return productoRepo.listarProductos();
     }
 
     public ProductoDTO obtenerPorId(int idProducto) {
         return productoRepo.obtenerPorId(idProducto);
-    }
-
-    public void registrarProducto(ProductoDTO producto) {
-        productoRepo.registrarProducto(producto);
     }
 
     public void actualizarProducto(ProductoDTO producto) {
@@ -38,12 +39,22 @@ public class ProductoService {
         productoRepo.cambiarEstado(idProducto, estado);
     }
 
-    public boolean sincronizarProductos(ProductoDTO dto) {
+    public boolean registrarProducto(ProductoDTO dto) {
         try {
-            productoRepo.sincronizarProducto(dto);
+            productoRepo.guardarProducto(dto);
+
+            for (VarianteProductoDTO var : dto.getVariante()) {
+                try {
+                    var.setCodProducto(dto.getCodProducto());
+                    varianteRepo.guardarVariante(var);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
             return true;
         } catch (Exception e) {
-            System.err.println("⚠️ Error al sincronizar producto (" + dto.getCodProducto() + "): " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
