@@ -1,11 +1,19 @@
 package com.store.erp.Repo;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.store.erp.Models.ReporteIndicadoresCardsDTO;
+import com.store.erp.Models.UtilsDTO;
 
 public class RepoUtils {
 
@@ -70,6 +78,5 @@ public class RepoUtils {
         java.sql.Timestamp timestamp = rs.getTimestamp(col);
         return timestamp != null ? timestamp.toInstant().atOffset(java.time.ZoneOffset.UTC) : null;
     }
-
 }
 

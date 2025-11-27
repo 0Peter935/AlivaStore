@@ -374,5 +374,68 @@ public class Mappers extends RepoUtils {
 
         return new ArrayList<>(productosMap.values());
     }
+
+    // =====================================================
+    // Mapeo de PEDIDO REPORTERIA . INDICADORES_DASHBOARD
+    // =====================================================
+    public static ReporteIndicadoresCardsDTO mapReporteCards(ResultSet rs) throws SQLException {
+        ReporteIndicadoresCardsDTO r = new ReporteIndicadoresCardsDTO();
+
+        r.setCantidadClientes(safeInt(rs, "CANTIDAD_CLIENTES"));
+        r.setNumeroPedidos(safeInt(rs, "NUMERO_PEDIDOS"));
+        r.setPromedioPedidosPorDia(safeDouble(rs, "PROMEDIO_PEDIDOS_POR_DIA"));
+        r.setVentasTotales(safeDouble(rs, "VENTAS_TOTALES"));
+        return r;
+    }
+
+    public static ReportePedidosEstadoDTO mapReportePedidosEstado(ResultSet rs) throws SQLException {
+        ReportePedidosEstadoDTO r = new ReportePedidosEstadoDTO();
+
+        r.setDescripcion(safeString(rs, "DESCRIPCION"));
+        r.setTotalPedidos(safeInt(rs, "TOTAL_PEDIDOS"));
+        return r;
+    }
+
+    public static ReportePedidosFechaDTO mapReportePedidosFecha(ResultSet rs) throws SQLException {
+        ReportePedidosFechaDTO r = new ReportePedidosFechaDTO();
+
+        r.setFecha(safeString(rs, "FECHA"));
+        r.setTotalPedidos(safeInt(rs, "TOTAL_PEDIDOS"));
+        return r;
+    }
+
+    public static ReportePedidosVendedorDTO mapReportePedidosVendedor(ResultSet rs) throws SQLException {
+        ReportePedidosVendedorDTO r = new ReportePedidosVendedorDTO();
+
+        r.setUsuario(safeString(rs, "USUARIO"));
+        r.setTotalPedidos(safeInt(rs, "TOTAL_PEDIDOS"));
+        return r;
+    }
+
+    public static ReporteProductosVendidosDTO mapReporteProductosVendidos(ResultSet rs) throws SQLException {
+        ReporteProductosVendidosDTO r = new ReporteProductosVendidosDTO();
+
+        r.setNombreProductoCorto(safeString(rs, "NOMBRE_PRODUCTO_CORTO"));
+        r.setNombreProducto(safeString(rs, "NOMBRE_PRODUCTO"));
+        r.setTotalVendido(safeInt(rs, "TOTAL_VENDIDO"));
+        return r;
+    }
+
+    public static ReportePedidosDepartamentoDTO mapReportePedidosDepartamento(ResultSet rs) throws SQLException {
+        ReportePedidosDepartamentoDTO r = new ReportePedidosDepartamentoDTO();
+
+        r.setCiudad(safeString(rs, "CIUDAD"));
+        r.setTotalPedidos(safeInt(rs, "TOTAL_PEDIDOS"));
+        return r;
+    }
     
+    // UTILS
+
+    public static UtilsDTO.ListarCiudad mapListarCiudad(ResultSet rs) throws SQLException {
+        UtilsDTO.ListarCiudad lc= new UtilsDTO.ListarCiudad();
+
+        lc.setCiudad(safeString(rs, "CIUDAD"));
+
+        return lc;
+    }
 }

@@ -51,4 +51,8 @@ public class ViewController {
         return "Sincronizar";
     }
 
+     @GetMapping("/reporteria/indicadores")
+    public String mostrarReporteriaIndicadores() {
+        return "Reporteria"; 
+    }
 }

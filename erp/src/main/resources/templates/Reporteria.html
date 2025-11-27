@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALIVA PERÚ - Dashboard</title>
+  <script src="/js/global-preload.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/tailwind-config.js"></script>
+  <link rel="stylesheet" href="/css/Reporteria.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css" />
+</head>
+
+<body class="h-full bg-gray-100">
+  <div class="flex h-full">
+    <div id="sidebar-container"></div>
+
+    <div class="flex-1 flex flex-col">
+      <div id="header-container"></div>
+
+      <main id="main-content" class="flex-1 p-6 overflow-y-auto">
+        <div id="chart">
+          <div class="space-y-8">
+
+            <section class="text-center mb-8">
+              <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
+                REPORTERÍA DE INDICADORES
+              </h1>
+            </section>
+
+            <div class="mt-6 mb-8">
+              <div class="w-full h-[4px] bg-aliva-blue"></div>
+            </div>
+            <!-- FILTROS A TODO EL ANCHO -->
+            <section class="bg-white p-6 rounded-xl shadow mb-10">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+                <!-- Fecha inicio -->
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Fecha inicio
+                  </label>
+                  <input type="date" id="fecha_inicio"
+                    class="mt-2 w-full p-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-aliva-blue" />
+                </div>
+
+                <!-- Fecha fin -->
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Fecha fin
+                  </label>
+                  <input type="date" id="fecha_fin"
+                    class="mt-2 w-full p-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-aliva-blue" />
+                </div>
+
+                <!-- Lugar -->
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Lugar / Departamento
+                  </label>
+                  <select id="filtroLugar"
+                    class="mt-2 w-full p-3 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-aliva-blue">
+                  </select>
+                </div>
+
+                <!-- Botón aplicar -->
+                <div class="flex items-end">
+                  <button id="btnAplicarFiltro"
+                    class="w-full bg-aliva-blue text-white font-semibold py-3 px-6 rounded-lg shadow hover:bg-blue-600 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-filter"></i>
+                    Aplicar
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- CARDS DE INDICADORES -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+
+              <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  Ventas Totales
+                </h3>
+                <p id="cardVentasTotales" class="mt-2 text-3xl font-bold text-gray-900">
+                  S/ 0
+                </p>
+                <p class="mt-1 text-xs text-gray-400">
+                  Considerando rango de fechas seleccionado.
+                </p>
+              </div>
+
+              <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  Número de Pedidos
+                </h3>
+                <p id="cardNumeroPedidos" class="mt-2 text-3xl font-bold text-gray-900">
+                  0
+                </p>
+                <p class="mt-1 text-xs text-gray-400">
+                  Pedidos registrados en el periodo.
+                </p>
+              </div>
+
+              <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  Promedio de Pedidos por Día
+                </h3>
+                <p id="cardPromedioPedidosDia" class="mt-2 text-3xl font-bold text-gray-900">
+                  0
+                </p>
+                <p class="mt-1 text-xs text-gray-400">
+                  Total pedidos / días del periodo.
+                </p>
+              </div>
+
+              <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  Cantidad de Clientes
+                </h3>
+                <p id="cardCantidadClientes" class="mt-2 text-3xl font-bold text-gray-900">
+                  0
+                </p>
+                <p class="mt-1 text-xs text-gray-400">
+                  Clientes únicos con pedidos en el periodo.
+                </p>
+              </div>
+
+            </section>
+
+            <!-- SECCIÓN DE GRÁFICOS -->
+            <section class="space-y-6">
+
+              <!-- Gráfico grande: Número de pedidos por día/mes/año -->
+              <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-lg font-bold text-gray-900 mb-1">
+                  Número de Pedidos por Día / Mes / Año
+                </h2>
+                <p class="text-xs text-gray-400 mb-4">
+                  Evolución temporal del volumen de pedidos.
+                </p>
+                <div id="chartPedidosTiempo" class="min-h-[280px]"></div>
+              </div>
+
+              <!-- Grid de 3 gráficos -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+
+                <!-- Productos más vendidos TOP 10 -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                  <h2 class="text-lg font-bold text-gray-900 mb-1">
+                    Productos Más Vendidos (Top 10)
+                  </h2>
+                  <p class="text-xs text-gray-400 mb-4">
+                    Ranking por cantidad de unidades vendidas.
+                  </p>
+                  <div id="chartTopProductos" class="min-h-[260px]"></div>
+                </div>
+
+                <!--  dos por vendedor -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                  <h2 class="text-lg font-bold text-gray-900 mb-1">
+                    Cantidad de Pedidos por Vendedor
+                  </h2>
+                  <p class="text-xs text-gray-400 mb-4">
+                    Distribución del volumen de pedidos por asesor/comercial.
+                  </p>
+                  <div id="chartPedidosVendedor" class="min-h-[260px]"></div>
+                </div>
+
+                <!-- Cantidad de pedidos por estado (circular) -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                  <h2 class="text-lg font-bold text-gray-900 mb-1">
+                    Cantidad de Pedidos por Estado
+                  </h2>
+                  <p class="text-xs text-gray-400 mb-4">
+                    Pendiente, en proceso, entregado, anulado, etc.
+                  </p>
+                  <div id="chartPedidosEstado" class="min-h-[360px]"></div>
+                </div>
+
+              </div>
+
+              <!-- Grid de 2 gráficos grandes -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- Ventas por lugar (departamento) -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                  <h2 class="text-lg font-bold text-gray-900 mb-1">
+                    Total de Pedidos por Lugar
+                  </h2>
+                  <p class="text-xs text-gray-400 mb-4">
+                    Cantidad de Pedidos por cada Lugar
+                  </p>
+
+                  <!-- Contenedor con scroll horizontal -->
+                  <div id="contenedorScrollVentasLugar"
+                    style="overflow-x: auto; overflow-y: hidden; white-space: nowrap; padding-bottom: 10px;">
+
+                    <!-- ApexCharts se renderiza aquí -->
+                    <div id="chartVentasLugar" style="display: inline-block; min-width: 1400px;"></div>
+
+                  </div>
+                </div>
+
+                <!-- Análisis predictivo -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                  <h2 class="text-lg font-bold text-gray-900 mb-1">
+                    Análisis Predictivo
+                  </h2>
+                  <p class="text-xs text-gray-400 mb-4">
+                    Proyección de ventas / pedidos basada en comportamiento histórico.
+                  </p>
+                  <div id="chartAnalisisPredictivo" class="min-h-[280px]"></div>
+                </div>
+
+              </div>
+
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script>
+    setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 50);
+  </script>
+  <script src="/js/navar.js" defer></script>
+  <script src="/js/header.js" defer></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://unpkg.com/ag-grid-community@31.3.0/dist/ag-grid-community.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="/js/Reporteria.js?v=1" defer></script>
+
+</body>
+
+</html>
