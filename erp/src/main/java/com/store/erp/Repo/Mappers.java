@@ -428,6 +428,7 @@ public class Mappers extends RepoUtils {
         r.setTotalPedidos(safeInt(rs, "TOTAL_PEDIDOS"));
         return r;
     }
+    
     // UTILS
 
     public static UtilsDTO.ListarCiudad mapListarCiudad(ResultSet rs) throws SQLException {
