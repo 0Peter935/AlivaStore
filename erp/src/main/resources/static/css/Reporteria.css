@@ -1,0 +1,8 @@
+#filtroLugar {
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+#filtroLugar option {
+  padding: 6px;
+}
