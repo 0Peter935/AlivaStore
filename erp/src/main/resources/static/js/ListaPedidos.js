@@ -1,8 +1,48 @@
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🧩 Iniciando ListaPedidos...");
+  console.log("🧩 Iniciando ListaPedidos con ACL...");
 
   let gridApiPedidos = null;
 
+  // =====================================================
+  // 🔐  PERMISOS / ACL
+  // =====================================================
+  const usuarioActual = JSON.parse(sessionStorage.getItem("usuario"));
+  console.log("👤 Usuario logueado:", usuarioActual);
+
+  if (!usuarioActual) {
+    Swal.fire("Error", "No se encontró la sesión del usuario", "error");
+    return;
+  }
+
+  const idUsuario = usuarioActual.idUsuario;
+  const idRol = usuarioActual.rol?.idRol ?? 0;
+
+  // Resolver endpoint según rol
+  function getEndpointPedidos() {
+    switch (idRol) {
+      case 2: // Vendedor
+        return `/api/pedidos/vendedor/${idUsuario}`;
+      case 3: // Logistica
+        return "/api/pedidos/logistica";
+      default:
+        return "/api/pedidos";
+    }
+  }
+
+  // =====================================================
+  // 🔧 Opciones adicionales según rol (herramientas)
+  // =====================================================
+  function PermisoVerPedido() {
+    return idRol === 3;
+  }
+
+  function PermisoEditarPedido() {
+    return idRol === 1 || idRol === 2; // Todos pueden ver detalle
+  }
+
+  // =====================================================
+  // 🚀 INIT
+  // =====================================================
   initListaPedidos();
 
   async function initListaPedidos() {
@@ -29,12 +69,13 @@ document.addEventListener("DOMContentLoaded", () => {
         cellRenderer: (params) => {
           const c = params.data?.cliente;
           if (!c) return "-";
-          return `<div>
-              <p class="font-semibold text-gray-800">${c.nombres} ${
+          return `
+            <div>
+                <p class="font-semibold text-gray-800">${c.nombres} ${
             c.apellidoPaterno ?? ""
           }</p>
-              <p class="text-sm text-gray-500">${c.dni ?? ""}</p>
-          </div>`;
+                <p class="text-sm text-gray-500">${c.dni ?? ""}</p>
+            </div>`;
         },
       },
       {
@@ -58,8 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
         field: "estadoPedido.descripcion",
         width: 160,
         cellRenderer: (params) => {
-          const estado = params.value?.toUpperCase() || "";
-
+          const estado = (params.value ?? "").toUpperCase();
           const color =
             estado === "PENDIENTE"
               ? "bg-yellow-100 text-yellow-700"
@@ -71,15 +111,9 @@ document.addEventListener("DOMContentLoaded", () => {
               ? "bg-indigo-100 text-indigo-700"
               : estado === "COMPLETADO"
               ? "bg-green-100 text-green-700"
-              : estado === "CANCELADO"
-              ? "bg-gray-200 text-gray-700"
-              : "bg-slate-100 text-slate-700";
+              : "bg-gray-200 text-gray-700";
 
-          return `
-            <span class="px-3 py-1 rounded-full text-xs font-semibold ${color}">
-              ${estado}
-            </span>
-          `;
+          return `<span class="px-3 py-1 rounded-full text-xs font-semibold ${color}">${estado}</span>`;
         },
       },
       {
@@ -89,43 +123,69 @@ document.addEventListener("DOMContentLoaded", () => {
         cellRenderer: (params) => {
           const detalles = params.value ?? [];
           const totalItems = detalles.length;
-          const tooltip = document.createElement("div");
-          tooltip.className =
-            "hidden absolute bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[220px] z-[9999]";
-          tooltip.innerHTML = `
-            <p class="text-sm font-semibold text-indigo-600 mb-1">Productos en pedido</p>
-            ${
-              totalItems > 0
-                ? detalles
-                    .map(
-                      (d) => `
-                      <div class="flex justify-between text-sm">
-                        <span>${d.nombreProducto}</span>
-                        <span>x${d.cantidad}</span>
-                      </div>`
-                    )
-                    .join("")
-                : "<p class='text-gray-400 text-sm italic'>Sin detalles</p>"
-            }
-          `;
-          document.body.appendChild(tooltip);
 
+          // 🌟 Contenedor principal (texto visible en celda)
           const wrapper = document.createElement("div");
           wrapper.className =
-            "relative cursor-pointer font-semibold text-gray-800 select-none";
+            "cursor-pointer font-semibold text-gray-800 select-none w-full h-full flex items-center";
+
           wrapper.textContent = `${totalItems} ítem${
             totalItems !== 1 ? "s" : ""
           }`;
 
-          wrapper.addEventListener("mouseenter", (e) => {
-            const rect = e.target.getBoundingClientRect();
-            tooltip.style.display = "block";
-            tooltip.style.left = `${rect.left + rect.width / 2 - 100}px`;
-            tooltip.style.top = `${rect.bottom + 6}px`;
-          });
-          wrapper.addEventListener("mouseleave", () => {
-            tooltip.style.display = "none";
-          });
+          // 🌟 Popover global
+          const popover = document.createElement("div");
+          popover.className = `
+      absolute bg-white border shadow-xl rounded-lg p-3 w-64 z-[9999] hidden
+    `;
+          popover.innerHTML = `
+      <p class="text-sm font-semibold text-indigo-600 mb-2">Productos</p>
+      ${
+        detalles.length > 0
+          ? detalles
+              .map(
+                (d) => `
+          <div class="flex justify-between text-sm py-0.5">
+            <span>${d.nombreProducto}</span>
+            <span class="font-semibold">x${d.cantidad}</span>
+          </div>`
+              )
+              .join("")
+          : `<p class="text-gray-400 italic text-sm">Sin detalles</p>`
+      }
+    `;
+          document.body.appendChild(popover);
+
+          // ⭐ Este es el truco:
+          //   Detectamos la celda padre de AG Grid en lugar del wrapper
+          let cellElement = null;
+
+          setTimeout(() => {
+            cellElement = wrapper.closest(".ag-cell");
+            if (cellElement) {
+              cellElement.classList.add("relative");
+            }
+          }, 0);
+
+          // ========== EVENTOS SOBRE TODA LA CELDA ==========
+          function showPopover(e) {
+            const rect = cellElement.getBoundingClientRect();
+            popover.style.left = `${rect.left + rect.width / 2 - 120}px`;
+            popover.style.top = `${rect.bottom + 5}px`;
+            popover.classList.remove("hidden");
+          }
+
+          function hidePopover() {
+            popover.classList.add("hidden");
+          }
+
+          // Agregar eventos a la celda
+          setTimeout(() => {
+            if (cellElement) {
+              cellElement.addEventListener("mouseenter", showPopover);
+              cellElement.addEventListener("mouseleave", hidePopover);
+            }
+          }, 5);
 
           return wrapper;
         },
@@ -136,17 +196,33 @@ document.addEventListener("DOMContentLoaded", () => {
         filter: false,
         cellRenderer: (params) => {
           const pedido = params.data;
-          return `
-      <div class="flex justify-center gap-2">
-        <button
-          onclick="verDetallePedido(${pedido.idPedido})"
-          class="text-blue-600 hover:text-blue-800 transition"
-          title="Ver detalle del pedido"
-        >
-          <i class="fa-solid fa-eye"></i>
-        </button>
-      </div>
-    `;
+
+          let html = `<div class="flex justify-center gap-2">`;
+
+          if (PermisoEditarPedido()) {
+            html += `
+            <button
+              onclick="editarDetallePedido('${pedido.codPedido}')"
+              class="text-blue-600 hover:text-blue-800 transition"
+              title="Ver detalle del pedido"
+            >
+              <i class="fa-solid fa-eye"></i>
+            </button>`;
+          }
+
+          if (PermisoVerPedido()) {
+            html += `
+            <button
+              onclick="DespachoPedido('${pedido.codPedido}')"
+              class="text-purple-600 hover:text-purple-800 transition"
+              title="Herramienta de admin/supervisor"
+            >
+              <i class="fa-solid fa-eye"></i>
+            </button>`;
+          }
+
+          html += `</div>`;
+          return html;
         },
       },
     ];
@@ -176,11 +252,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // =====================================================
+  // 📡 Cargar pedidos según rol / ACL
+  // =====================================================
   async function loadPedidos() {
     try {
-      const res = await fetch("/api/pedidos");
+      const endpoint = getEndpointPedidos();
+      console.log("📡 Cargando pedidos desde:", endpoint);
+
+      const res = await fetch(endpoint);
       if (!res.ok) throw new Error("Error al obtener pedidos");
+
       const data = await res.json();
+      console.log("📦 Pedidos recibidos:", data.length);
+
       gridApiPedidos.setGridOption("rowData", data);
     } catch (err) {
       console.error("Error al cargar pedidos:", err);
@@ -192,8 +277,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  window.verDetallePedido = (idPedido) => {
-    localStorage.setItem("pedidoSeleccionado", idPedido);
-    window.location.href = "/pedidos/detallePedido";
+  // =====================================================
+  // 🔗 Ir a detalle
+  // =====================================================
+  window.DespachoPedido = (codPedido) => {
+    localStorage.setItem("pedidoSeleccionado", codPedido);
+    window.location.href = "/pedidos/despacho";
+  };
+
+  window.editarDetallePedido = (codPedido) => {
+    localStorage.setItem("pedidoSeleccionado", codPedido);
+    window.location.href = "/pedidos/editar";
   };
 });

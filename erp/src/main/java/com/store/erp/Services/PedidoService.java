@@ -17,6 +17,14 @@ public class PedidoService {
     public List<PedidoDTO> listarPedidos() {
         return pedidoRepo.listarPedidos();
     }
+    
+    public List<PedidoDTO> listarPedidosPorVendedor(int idVendedor) {
+        return pedidoRepo.listarPedidosPorVendedor(idVendedor);
+    }
+
+    public List<PedidoDTO> listarPedidosParaLogistica() {
+        return pedidoRepo.listarPedidosParaLogistica();
+    }
 
     public PedidoDTO obtenerPedidoPorCod(String codPedido) {
         return pedidoRepo.obtenerPedidoPorCod(codPedido);

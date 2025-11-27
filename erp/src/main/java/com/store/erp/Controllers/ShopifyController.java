@@ -555,6 +555,8 @@ public class ShopifyController {
         );
 
         pedido.setEstadoPedido(estado);
+        pedido.setAdelanto(false);
+        pedido.setMontoAdelanto(0.0);
 
         // ==========================================================
         // Detalles del pedido (line_items)

@@ -88,4 +88,16 @@ public class UsuarioRepo extends Mappers {
         );
     }
 
+    public void actualizarPerfil(UsuarioDTO u) {
+        jdbcTemplate.update(
+            "EXEC SP_USUARIO_ACTUALIZAR_PERFIL ?, ?, ?, ?, ?, ?",
+            u.getIdUsuario(),
+            u.getNombre(),
+            u.getApPaterno(),
+            u.getApMaterno(),
+            u.getCorreo(),
+            u.getTelefono()
+        );
+    }
+
 }

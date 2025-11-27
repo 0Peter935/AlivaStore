@@ -13,21 +13,23 @@ import java.util.List;
 public class PedidoDTO {
 
     private int idPedido;
+    
     private String codPedido;
     private UsuarioDTO usuario;
     private ClienteDTO cliente;
     private EstadoPedidoDTO estadoPedido;
     private EmpresaEntregaDTO empresaEntrega;
+
     private String documento;
     private String evidencia;
     private double subtotal;
     private double igv;
-    private double adelanto;
     private double montoTotal;
     private String ciudad;
     private String tipoPago;
     private String tipoComprobante;
-    private double montoCobrado;
+    private Boolean adelanto;
+    private double montoAdelanto;
     private String observacion;
     private OffsetDateTime fechaReg;
 

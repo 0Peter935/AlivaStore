@@ -158,7 +158,7 @@ public class Mappers extends RepoUtils {
         c.setTelefono(safeString(rs, "TELEFONO"));
         c.setCanOrdenes(safeInt(rs, "CANTIDAD_ORDENES"));
         c.setDireccion(safeString(rs, "DIRECCION"));
-        c.setCiudad(safeString(rs, "CIUDAD"));
+        c.setCiudad(safeString(rs, "CIUDAD_CLIENTE"));
         c.setProvincia(safeString(rs, "PROVINCIA"));
         c.setPais(safeString(rs, "PAIS"));
         c.setFechaReg(safeOffsetDateTime(rs, "FECHA_REGISTRO"));
@@ -214,12 +214,12 @@ public class Mappers extends RepoUtils {
         p.setDocumento(safeString(rs, "DOCUMENTO"));
         p.setSubtotal(safeDouble(rs, "SUBTOTAL"));
         p.setIgv(safeDouble(rs, "IGV"));
-        p.setAdelanto(safeDouble(rs, "ADELANTO"));
         p.setMontoTotal(safeDouble(rs, "MONTO_TOTAL"));
         p.setCiudad(safeString(rs, "CIUDAD"));
         p.setTipoPago(safeString(rs, "TIPO_PAGO"));
         p.setTipoComprobante(safeString(rs, "TIPO_COMPROBANTE"));
-        p.setMontoCobrado(safeDouble(rs, "MONTO_COBRADO"));
+        p.setAdelanto(safeBool(rs, "ADELANTO"));
+        p.setMontoAdelanto(safeDouble(rs, "MONTO_ADELANTO"));
         p.setObservacion(safeString(rs, "OBSERVACION"));
         p.setEvidencia(safeString(rs, "EVIDENCIA"));
         p.setFechaReg(safeOffsetDateTime(rs, "FECHA_REGISTRO"));
@@ -323,7 +323,7 @@ public class Mappers extends RepoUtils {
                 pedido.getNotas().add(mapNotaPedido(rs));
             }
         }
-
+        
         return pedido;
     }
 

@@ -4,11 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -27,34 +23,52 @@ public class PedidoRepo extends Mappers {
         return jdbcTemplate.query("EXEC SP_PEDIDO_LISTAR_COMPLETO", (ResultSet rs) -> mapPedidosConDetalles(rs));
     }
 
-    public PedidoDTO obtenerPedidoPorCod(String codPedido) {
-        return jdbcTemplate.query(
-            "EXEC SP_PEDIDO_OBTENER_CON_DETALLE ?",
-            new Object[]{codPedido},
-            (ResultSet rs) -> {
-                PedidoDTO pedido = null;
-                Map<Integer, PedidoDetalleDTO> detallesMap = new LinkedHashMap<>();
-
-                while (rs.next()) {
-                    if (pedido == null) {
-                        pedido = Mappers.mapPedidoConDetalle(rs);
-                    }
-
-                    int idDetalle = RepoUtils.safeInt(rs, "ID_DETALLE_P");
-                    if (!detallesMap.containsKey(idDetalle)) {
-                        PedidoDetalleDTO detalle = Mappers.mapDetallePedido(rs);
-                        detalle.setCodPedido(pedido.getCodPedido());
-                        detallesMap.put(idDetalle, detalle);
-                    }
-                }
-
-                if (pedido != null)
-                    pedido.setDetalles(new ArrayList<>(detallesMap.values()));
-
-                return pedido;
-            }
-        );
+    public List<PedidoDTO> listarPedidosPorVendedor(int idVendedor) {
+        return jdbcTemplate.query(con -> {
+            PreparedStatement ps = con.prepareStatement("EXEC SP_PEDIDO_LISTAR_POR_VENDEDOR ?");
+            ps.setInt(1, idVendedor);
+            return ps;
+        }, (ResultSet rs) -> mapPedidosConDetalles(rs));
     }
+
+    public List<PedidoDTO> listarPedidosParaLogistica() {
+        return jdbcTemplate.query("EXEC SP_PEDIDO_LISTAR_PARA_LOGISTICA", (ResultSet rs) -> mapPedidosConDetalles(rs));
+    }
+
+    public PedidoDTO obtenerPedidoPorCod(String codPedido) {
+        return jdbcTemplate.query(con -> {
+            PreparedStatement ps = con.prepareStatement("EXEC SP_PEDIDO_OBTENER_DETALLE ?");
+            ps.setString(1, codPedido);
+            return ps;
+        }, rs -> {
+
+            PedidoDTO pedido = null;
+
+            // 1️⃣ Primer resultset → PEDIDO
+            if (rs.next()) {
+                pedido = Mappers.mapPedido(rs);
+            }
+
+            // ⏭ Ir al siguiente resultset → DETALLES
+            if (rs.getStatement().getMoreResults()) {
+                ResultSet rsDetalles = rs.getStatement().getResultSet();
+                while (rsDetalles.next()) {
+                    pedido.getDetalles().add(Mappers.mapDetallePedido(rsDetalles));
+                }
+            }
+
+            // ⏭ Siguiente resultset → NOTAS
+            if (rs.getStatement().getMoreResults()) {
+                ResultSet rsNotas = rs.getStatement().getResultSet();
+                while (rsNotas.next()) {
+                    pedido.getNotas().add(Mappers.mapNotaPedido(rsNotas));
+                }
+            }
+
+            return pedido;
+        });
+    }
+
 
     public int guardarPedidoCompleto(PedidoDTO pedido) {
         return jdbcTemplate.execute((Connection con) -> {
@@ -100,7 +114,7 @@ public class PedidoRepo extends Mappers {
                 // ===============================
                 // PROCEDURE CALL
                 // ===============================
-                String sql = "EXEC SP_PEDIDO_GUARDAR_COMPLETO ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+                String sql = "EXEC SP_PEDIDO_SINCRO ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
 
                 try (PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -113,16 +127,16 @@ public class PedidoRepo extends Mappers {
                     ps.setString(7, pedido.getEvidencia());
                     ps.setBigDecimal(8, BigDecimal.valueOf(pedido.getSubtotal()));
                     ps.setBigDecimal(9, BigDecimal.valueOf(pedido.getIgv()));
-                    ps.setBigDecimal(10, BigDecimal.valueOf(pedido.getAdelanto()));
+                    ps.setBoolean(10, pedido.getAdelanto());
                     ps.setBigDecimal(11, BigDecimal.valueOf(pedido.getMontoTotal()));
                     ps.setString(12, pedido.getCiudad());
                     ps.setString(13, pedido.getTipoPago());
                     ps.setString(14, pedido.getTipoComprobante());
-                    ps.setBigDecimal(15, BigDecimal.valueOf(pedido.getMontoCobrado()));
+                    ps.setBigDecimal(15, BigDecimal.valueOf(pedido.getMontoAdelanto()));
                     ps.setString(16, pedido.getObservacion());
                     ps.setObject(17, pedido.getFechaReg());
-                    ps.setObject(18, tvpDetalles);   // TVP DETALLES
-                    ps.setObject(19, tvpNotas);      // TVP NOTAS  ⭐ NUEVO
+                    ps.setObject(18, tvpDetalles);
+                    ps.setObject(19, tvpNotas);
 
                     return ps.executeUpdate();
                 }
@@ -135,48 +149,70 @@ public class PedidoRepo extends Mappers {
     }
 
     public void actualizarPedidoCompleto(PedidoDTO pedido) {
+
         jdbcTemplate.execute((Connection con) -> {
             try {
-                // 🧱 Crear TVP (Table-Valued Parameter) para los detalles
+
+                System.out.println("📌 Construyendo TVP DETALLE_PEDIDO...");
+
+                // ===========================
+                // 1️⃣ Crear TVP Detalles
+                // ===========================
                 SQLServerDataTable tvp = new SQLServerDataTable();
-                tvp.addColumnMetadata("ID_PRODUCTO", java.sql.Types.INTEGER);
+
+                tvp.addColumnMetadata("COD_PRODUCTO", java.sql.Types.NVARCHAR);
+                tvp.addColumnMetadata("COD_VARIANTE", java.sql.Types.NVARCHAR);
+                tvp.addColumnMetadata("NOMBRE_PRODUCTO", java.sql.Types.NVARCHAR);
                 tvp.addColumnMetadata("CANTIDAD", java.sql.Types.INTEGER);
                 tvp.addColumnMetadata("PRECIO_UNITARIO", java.sql.Types.DECIMAL);
                 tvp.addColumnMetadata("PRECIO_TOTAL", java.sql.Types.DECIMAL);
 
                 if (pedido.getDetalles() != null) {
-                    pedido.getDetalles().forEach(det -> {
-                        try {
-                            tvp.addRow(
-                                det.getCantidad(),
-                                det.getPrecioUnitario(),
-                                det.getPrecioTotal()
-                            );
-                        } catch (SQLException e) {
-                            throw new RuntimeException("Error al agregar fila al TVP", e);
-                        }
-                    });
+                    for (PedidoDetalleDTO det : pedido.getDetalles()) {
+
+                        tvp.addRow(
+                            det.getCodProducto(),
+                            det.getCodVariante(),
+                            det.getNombreProducto(),
+                            det.getCantidad(),
+                            det.getPrecioUnitario(),
+                            det.getPrecioTotal()
+                        );
+                    }
                 }
 
-                // ⚙️ Consulta con parámetros posicionales
-                String sql = "EXEC SP_PEDIDO_ACTUALIZAR_COMPLETO ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+                // ===========================
+                // 2️⃣ Ejecutar SP
+                // ===========================
+                String sql = "EXEC SP_PEDIDO_ACTUALIZAR_COMPLETO ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
 
                 try (PreparedStatement ps = con.prepareStatement(sql)) {
-                    ps.setInt(1, pedido.getIdPedido());
-                    ps.setBigDecimal(2, BigDecimal.valueOf(pedido.getSubtotal()));
-                    ps.setBigDecimal(3, BigDecimal.valueOf(pedido.getIgv()));
-                    ps.setBigDecimal(4, BigDecimal.valueOf(pedido.getMontoTotal()));
-                    ps.setBigDecimal(5, BigDecimal.valueOf(pedido.getAdelanto()));
-                    ps.setString(6, pedido.getTipoPago());
-                    ps.setString(7, pedido.getEvidencia());
-                    ps.setLong(8, pedido.getEmpresaEntrega().getIdEmpresaEntrega());
-                    ps.setString(9, pedido.getTipoComprobante());
-                    ps.setObject(10, tvp);
+
+                    ps.setString(1, pedido.getCodPedido());
+                    ps.setString(2, pedido.getDocumento());
+                    ps.setString(3, pedido.getTipoComprobante());
+
+                    ps.setBigDecimal(4, BigDecimal.valueOf(pedido.getSubtotal()));
+                    ps.setBigDecimal(5, BigDecimal.valueOf(pedido.getIgv()));
+                    ps.setBigDecimal(6, BigDecimal.valueOf(pedido.getMontoTotal()));
+
+                    ps.setBoolean(7, pedido.getAdelanto());
+                    ps.setBigDecimal(8, BigDecimal.valueOf(pedido.getMontoAdelanto()));
+
+                    ps.setString(9, pedido.getTipoPago());
+                    ps.setString(10, pedido.getEvidencia());
+
+                    ps.setLong(11, pedido.getEmpresaEntrega().getIdEmpresaEntrega());
+                    ps.setInt(12, pedido.getEstadoPedido().getIdEstadoPedido());
+
+                    ps.setObject(13, tvp);
 
                     ps.execute();
                 }
 
+                System.out.println("Pedido actualizado correctamente");
                 return null;
+
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException("Error al guardar el pedido completo", e);

@@ -36,8 +36,13 @@ public class ViewController {
         return "ListaPedidos";
     }
 
-    @GetMapping("/pedidos/detallePedido")
-    public String mostrarDetallePedido() {
+    @GetMapping("/pedidos/despacho")
+    public String mostrarDespachoPedido() {
+        return "DespachoPedido";
+    }
+
+    @GetMapping("/pedidos/editar")
+    public String mostrarEditarPedido() {
         return "DetallePedido";
     }
 

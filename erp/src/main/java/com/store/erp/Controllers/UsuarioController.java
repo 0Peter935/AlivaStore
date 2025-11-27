@@ -77,4 +77,11 @@ public class UsuarioController {
                     .body(Map.of("error", "Error al actualizar estado", "details", e.getMessage()));
         }
     }
+
+    @PostMapping("/perfil/actualizar")
+    public ResponseEntity<?> actualizarPerfil(@RequestBody UsuarioDTO usuario) {
+        usuarioService.actualizarPerfil(usuario);
+        return ResponseEntity.ok("Perfil actualizado correctamente");
+    }
+
 }

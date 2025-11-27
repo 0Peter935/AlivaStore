@@ -37,8 +37,28 @@ public class PedidoController {
         }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> obtenerPedido(@PathVariable("id") String codPedido) {
+    @GetMapping("/vendedor/{idVendedor}")
+    public ResponseEntity<List<PedidoDTO>> listarPedidosPorVendedor(@PathVariable("idVendedor") int idVendedor) {
+        try {
+            return ResponseEntity.ok(pedidoService.listarPedidosPorVendedor(idVendedor));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/logistica")
+    public ResponseEntity<List<PedidoDTO>> listarPedidosParaLogistica() {
+        try {
+            return ResponseEntity.ok(pedidoService.listarPedidosParaLogistica());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/{cod}")
+    public ResponseEntity<?> obtenerPedido(@PathVariable("cod") String codPedido) {
         PedidoDTO pedido = pedidoService.obtenerPedidoPorCod(codPedido);
         if (pedido == null)
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

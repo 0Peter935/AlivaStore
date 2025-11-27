@@ -41,4 +41,9 @@ public class UsuarioService {
     public void cambiarEstado(int idUsuario, boolean estado) {
         usuarioRepo.cambiarEstado(idUsuario, estado);
     }
+
+    public void actualizarPerfil(UsuarioDTO u) {
+        usuarioRepo.actualizarPerfil(u);
+    }
+
 }

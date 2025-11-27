@@ -342,15 +342,6 @@ function initGridProductos(detalles) {
           ? `<span class="text-gray-400">----</span>`
           : `S/ ${(p.value ?? 0).toFixed(2)}`,
     },
-    {
-      headerName: "Acción",
-      width: 130,
-      cellRenderer: () => `
-          <button class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">
-            <i class="fa-solid fa-trash"></i> Eliminar
-          </button>
-        `,
-    },
   ];
 
   gridOptions = {
