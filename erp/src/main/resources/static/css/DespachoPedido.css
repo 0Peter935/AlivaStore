@@ -1,3 +1,9 @@
+html,
+body {
+  height: 100%;
+  overflow: hidden !important;
+}
+
 @keyframes spin-slow {
   from {
     transform: rotate(0deg);
@@ -61,8 +67,17 @@
   word-break: break-word;
 }
 
-html,
-body {
-  height: 100%;
-  overflow: hidden !important;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
 }

@@ -19,23 +19,24 @@
 function initNavar() {
   console.log("✅ Navbar inicializado");
 
-  // Toggle de submenús
+  const usuario = JSON.parse(sessionStorage.getItem("usuario"));
+  const rol = usuario?.rol?.idRol ?? 0;
+
+  // Asignar rutas según rol
+  const linkPedidos = document.getElementById("pedidos-link1");
+
+  if (linkPedidos) {
+    if (rol === 1) linkPedidos.href = "/pedidos/admin/lista";
+    else if (rol === 2) linkPedidos.href = "/pedidos/vendedor/lista";
+    else if (rol === 3) linkPedidos.href = "/pedidos/logistica/lista";
+  }
+
+  // Inicializar submenús
   document.querySelectorAll("[data-submenu]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const id = btn.dataset.submenu;
-      toggleSubmenu(id);
+      toggleSubmenu(btn.dataset.submenu);
     });
   });
-
-  // Cerrar sesión (si existe el botón en el HTML)
-  const logoutBtn = document.querySelector("[data-logout]");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      sessionStorage.removeItem("usuario");
-      window.location.href = "/login";
-    });
-  }
 }
 
 function toggleSubmenu(id) {

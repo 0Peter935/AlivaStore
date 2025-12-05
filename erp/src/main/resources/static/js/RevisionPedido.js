@@ -46,6 +46,9 @@ async function initDetallePedido() {
   initEvidencia();
   initPago();
 
+  // Cargar productos (catálogo)
+  await cargarProductos();
+
   // Normalizar detalles: regalo -> booleano
   const detalles = (pedido.detalles || []).map((d) => {
     const r = d.esRegalo === true || d.esRegalo === 1;
@@ -66,10 +69,14 @@ async function initDetallePedido() {
   renderCliente(pedido.cliente);
   renderPedido(pedido);
   renderEvidencia(pedido);
-  renderDatosEnvio(pedido);
   renderEstadoPago(pedido);
   renderNotas(pedido.notas);
   renderResumenFinanciero(calcularFinanzas());
+
+  // Botón agregar producto
+  document
+    .getElementById("btnAgregarProducto")
+    ?.addEventListener("click", abrirModalAgregar);
 
   // Botón guardar
   document
@@ -78,7 +85,7 @@ async function initDetallePedido() {
 
   // Botón aprobar
   document
-    .getElementById("btnEnviarPedido")
+    .getElementById("btnAprobarPedido")
     ?.addEventListener("click", () => onGuardarPedido(true));
 }
 
@@ -90,6 +97,22 @@ async function fetchJson(url, method = "GET", body) {
     return JSON.parse(text);
   } catch {
     return {};
+  }
+}
+
+// ======================= CARGA DE DATOS =======================
+async function cargarProductos() {
+  console.group("[cargarProductos]");
+  try {
+    const data = await fetchJson(ENDPOINT_PRODUCTOS, "GET");
+    productosNormales = data.filter((p) => !p.regalo);
+    productosRegalo = data.filter((p) => p.regalo);
+    console.log("Catálogo:", {
+      normales: productosNormales.length,
+      regalos: productosRegalo.length,
+    });
+  } finally {
+    console.groupEnd();
   }
 }
 
@@ -270,7 +293,7 @@ function renderEvidencia(pedido) {
       const nombre = ev.nombre || ev.nombreArchivo || `evidencia-${index + 1}`;
       const idEv = ev.idEvidenciaPedido;
       const motivo = (ev.motivo || "").toUpperCase();
-      const puedeEliminar = motivo === "ENVIO";
+      const puedeEliminar = motivo === "REVISION";
 
       const card = document.createElement("div");
       card.className =
@@ -290,7 +313,7 @@ function renderEvidencia(pedido) {
             <button
               type="button"
               class="absolute top-1 right-1 bg-white/80 hover:bg-red-50 text-red-500 rounded-full w-6 h-6 flex items-center justify-center shadow btn-del-evidencia"
-              title="Eliminar evidencia de APROBACION"
+              title="Eliminar evidencia de REVISION"
               data-id="${idEv}"
             >
               <i class="fa-solid fa-xmark text-xs"></i>
@@ -312,7 +335,7 @@ function renderEvidencia(pedido) {
       container.appendChild(card);
     });
 
-    // 👉 Evento delegado para borrar SOLO las de APROBACION
+    // 👉 Evento delegado para borrar SOLO las de REVISION
     container.addEventListener("click", (e) => {
       const btn = e.target.closest(".btn-del-evidencia");
       if (!btn) return;
@@ -326,10 +349,10 @@ function renderEvidencia(pedido) {
       );
       const motivo = (ev?.motivo || "").toUpperCase();
 
-      if (motivo !== "ENVIO") {
+      if (motivo !== "REVISION") {
         Swal.fire(
           "No permitido",
-          "Solo se pueden eliminar evidencias con motivo ENVIO.",
+          "Solo se pueden eliminar evidencias con motivo REVISION.",
           "info"
         );
         return;
@@ -423,40 +446,53 @@ function renderPreviewEvidencias() {
 }
 
 function renderEstadoPago(pedido) {
-  const textoEl = document.getElementById("adelantoTexto");
+  const pagoCompletoCard = document.querySelector(
+    "#estadoPagoContainer > div:nth-child(2) > div:nth-child(1)"
+  );
+  const pagoAdelantoCard = document.querySelector(
+    "#estadoPagoContainer > div:nth-child(2) > div:nth-child(2)"
+  );
+  const inputAdelanto = document.getElementById("montoAdelanto");
+  const adelantoContainer = document.getElementById("adelantoContainer");
 
-  estadoAdelanto = pedido.adelanto === true;
-  montoAdelanto = Number(pedido.montoAdelanto || 0);
+  if (!pagoCompletoCard || !pagoAdelantoCard) return;
 
-  if (!textoEl) return;
+  // Reset estilos
+  [pagoCompletoCard, pagoAdelantoCard].forEach((card) => {
+    card.classList.remove("border-purple-500", "bg-purple-50");
+    card.classList.add("border-gray-300");
+    const icon = card.querySelector("i.fa-check-circle, i.fa-circle");
+    if (icon) {
+      icon.classList.remove("fa-check-circle", "fas", "text-purple-600");
+      icon.classList.add("fa-circle", "far", "text-gray-400");
+    }
+  });
 
-  if (!estadoAdelanto || montoAdelanto <= 0) {
-    textoEl.textContent = "Sin adelanto";
-    textoEl.classList.remove("text-green-600");
-    textoEl.classList.add("text-blue-600");
+  if (pedido.adelanto === true) {
+    // ✅ Pago con adelanto
+    pagoAdelantoCard.classList.add("border-purple-500", "bg-purple-50");
+    const icon = pagoAdelantoCard.querySelector("i.far.fa-circle");
+    if (icon) {
+      icon.classList.remove("fa-circle", "far", "text-gray-400");
+      icon.classList.add("fa-check-circle", "fas", "text-purple-600");
+    }
+    adelantoContainer.classList.remove("hidden");
+    inputAdelanto.value = Number(pedido.montoAdelanto || 0).toFixed(2);
   } else {
-    textoEl.textContent = `S/ ${montoAdelanto.toFixed(2)}`;
-    textoEl.classList.remove("text-blue-600");
-    textoEl.classList.add("text-green-600");
+    // ✅ Sin adelanto
+    pagoCompletoCard.classList.add("border-purple-500", "bg-purple-50");
+    const icon = pagoCompletoCard.querySelector("i.far.fa-circle");
+    if (icon) {
+      icon.classList.remove("fa-circle", "far", "text-gray-400");
+      icon.classList.add("fa-check-circle", "fas", "text-purple-600");
+    }
+    adelantoContainer.classList.add("hidden");
+    inputAdelanto.value = "0.00";
   }
-}
 
-function renderDatosEnvio(pedido) {
-  const ciudad = pedido.ciudad || pedido.ciudadPedido || "";
-  const direccion = pedido.cliente?.direccion || "";
-
-  const ciudadEl = document.getElementById("envioCiudad");
-  const dirEl = document.getElementById("envioDireccion");
-
-  if (ciudadEl) ciudadEl.value = ciudad;
-  if (dirEl) dirEl.value = direccion;
-
-  // Cargar empresa de entrega
-  const empresaSelect = document.getElementById("selectEmpresaEntrega");
-  if (empresaSelect) {
-    const idEmpresa = pedido.empresaEntrega?.idEmpresaEntrega;
-    empresaSelect.value = idEmpresa ? idEmpresa.toString() : "";
-  }
+  // Sincronizar variables globales
+  estadoAdelanto = !!pedido.adelanto;
+  montoAdelanto = Number(pedido.montoAdelanto || 0);
 }
 
 function renderNotas(notas = []) {
@@ -544,11 +580,48 @@ function initGridProductos(detalles) {
         // 👈 ahora alineado a la izquierda
         wrapper.className = "flex items-center justify-start gap-2";
 
+        const btnMinus = document.createElement("button");
+        btnMinus.innerHTML = `<i class="fa-solid fa-minus"></i>`;
+        btnMinus.className =
+          "w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 text-[12px]";
+
         const valueSpan = document.createElement("span");
         valueSpan.textContent = params.value ?? 1;
         valueSpan.className = "min-w-[16px] text-center text-[13px]";
 
-        wrapper.append(valueSpan);
+        const btnPlus = document.createElement("button");
+        btnPlus.innerHTML = `<i class="fa-solid fa-plus"></i>`;
+        btnPlus.className =
+          "w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 text-[12px]";
+
+        const updateCantidad = (delta) => {
+          let v = Number(params.data.cantidad || 0) + delta;
+          if (v < 1) v = 1;
+
+          params.data.cantidad = v;
+          params.data.precioTotal = v * (params.data.precioUnitario || 0);
+          valueSpan.textContent = v;
+
+          params.api.refreshCells({
+            rowNodes: [params.node],
+            columns: ["subtotal"],
+            force: true,
+          });
+
+          renderResumenFinanciero(calcularFinanzas());
+        };
+
+        btnMinus.onclick = (e) => {
+          e.stopPropagation();
+          updateCantidad(-1);
+        };
+
+        btnPlus.onclick = (e) => {
+          e.stopPropagation();
+          updateCantidad(1);
+        };
+
+        wrapper.append(btnMinus, valueSpan, btnPlus);
         return wrapper;
       },
     },
@@ -586,12 +659,13 @@ function initGridProductos(detalles) {
     {
       headerName: "Acción",
       field: "accion",
-      flex: 1,
-      minWidth: 130,
+      flex: 1, // ← esto hace que se estire hasta el borde derecho
+      minWidth: 130, // evita que se haga demasiado pequeña
       sortable: false,
       resizable: false,
 
       cellClass: "flex items-center justify-start",
+      // 👆 Centrado vertical y alineado a la izquierda
 
       cellRenderer: () => `
     <div class="flex items-center justify-start gap-3 h-full pl-3">
@@ -601,6 +675,14 @@ function initGridProductos(detalles) {
         title="Ver imagen"
       >
         <i class="fa-solid fa-image"></i>
+      </button>
+
+      <button 
+        data-action="delete"
+        class="text-red-500 hover:text-red-600 text-xl"
+        title="Eliminar"
+      >
+        <i class="fa-solid fa-trash"></i>
       </button>
     </div>
   `,
@@ -623,6 +705,7 @@ function initGridProductos(detalles) {
       ) {
         const btn = event.event.target.closest("button");
         const action = btn.dataset.action;
+        if (action === "delete") eliminarRegalo(event.node);
         if (action === "view") abrirModalDetalleProducto(event.data);
       }
     },
@@ -674,6 +757,268 @@ function eliminarRegalo(rowNode) {
       Swal.fire("Eliminado", "El producto fue eliminado", "success");
     }
   });
+}
+
+// ======================= MODAL AGREGAR =======================
+function abrirModalAgregar() {
+  const modal = document.getElementById("modalAgregarProducto");
+  const toggle = document.getElementById("toggleRegalo");
+  const toggleCircle = document.getElementById("toggleCircle");
+  const toggleSwitch = document.getElementById("toggleSwitch");
+  const inputBusqueda = document.getElementById("inputBuscarProducto");
+  const listaSugerencias = document.getElementById("listaSugerenciasProductos");
+  const inputCantidad = document.getElementById("inputCantidad");
+
+  if (!productosNormales.length && !productosRegalo.length) {
+    Swal.fire("Cargando productos", "Vuelve a intentar en un momento.", "info");
+    return;
+  }
+
+  // 🔹 Reset selección
+  productoSeleccionado = null;
+  varianteSeleccionada = null;
+  inputBusqueda.value = "";
+  inputCantidad.value = 1;
+
+  // 🔹 Helper: obtiene la lista base (normal/regalo)
+  const getListaBase = (esRegalo) =>
+    esRegalo ? productosRegalo : productosNormales;
+
+  // 🔹 Render del dropdown
+  const renderSugerencias = (termino = "") => {
+    const esRegalo = toggle.checked;
+    const lista = getListaBase(esRegalo);
+    const term = termino.trim().toLowerCase();
+
+    // Si no hay texto, mostramos máximo 20 productos/variantes
+    const maxItems = 30;
+
+    let html = "";
+
+    let count = 0;
+    for (const prod of lista) {
+      const variantes =
+        prod.variante && prod.variante.length ? prod.variante : [null]; // si no tiene variantes, tratamos al producto como una sola opción
+
+      // ¿Hay al menos una variante que matchee filtro?
+      const variantesFiltradas = variantes.filter((v) => {
+        const textProducto = (prod.descProducto || "").toLowerCase();
+        const textVariante = (v?.titulo || "").toLowerCase();
+        const codProducto = (prod.codProducto || "").toLowerCase();
+        const codVariante = (v?.codVariante || "").toLowerCase();
+
+        if (!term) return true; // sin filtro, mostrar todo
+
+        return (
+          textProducto.includes(term) ||
+          textVariante.includes(term) ||
+          codProducto.includes(term) ||
+          codVariante.includes(term)
+        );
+      });
+
+      if (!variantesFiltradas.length) continue;
+
+      // Header del producto
+      html += `
+        <div class="px-3 pt-2 pb-1 text-[11px] font-semibold text-gray-500 uppercase border-t border-gray-100 first:border-t-0 bg-gray-50">
+          ${prod.codProducto || ""} - ${
+        prod.descProducto || "Producto sin nombre"
+      }
+        </div>
+      `;
+
+      // Variantes
+      for (const v of variantesFiltradas) {
+        if (count >= maxItems) break;
+
+        const titulo =
+          v?.titulo || v?.codVariante || "Variante única / Sin título";
+
+        html += `
+          <button
+            type="button"
+            class="w-full text-left px-3 py-2 text-sm hover:bg-purple-50 flex flex-col gap-0.5"
+            data-cod-producto="${prod.codProducto || ""}"
+            data-cod-variante="${v?.codVariante || ""}"
+          >
+            <span class="text-[13px] text-gray-800">${titulo}</span>
+            ${
+              v?.codVariante
+                ? `<span class="text-[11px] text-gray-500">Variante: ${v.codVariante}</span>`
+                : ""
+            }
+          </button>
+        `;
+
+        count++;
+      }
+
+      if (count >= maxItems) break;
+    }
+
+    if (!html) {
+      html =
+        '<div class="px-3 py-2 text-sm text-gray-500">Sin resultados para tu búsqueda.</div>';
+    }
+
+    listaSugerencias.innerHTML = html;
+    listaSugerencias.classList.remove("hidden");
+  };
+
+  // 🔹 Eventos del input
+  inputBusqueda.oninput = (e) => {
+    productoSeleccionado = null;
+    varianteSeleccionada = null;
+    renderSugerencias(e.target.value);
+  };
+
+  inputBusqueda.onfocus = () => {
+    renderSugerencias(inputBusqueda.value);
+  };
+
+  // 🔹 Click en una sugerencia
+  listaSugerencias.onclick = (e) => {
+    const btn = e.target.closest("button[data-cod-producto]");
+    if (!btn) return;
+
+    const codProducto = btn.dataset.codProducto;
+    const codVariante = btn.dataset.codVariante;
+
+    const esRegalo = toggle.checked;
+    const lista = getListaBase(esRegalo);
+
+    const prod = lista.find((p) => p.codProducto === codProducto);
+    if (!prod) return;
+
+    let variante = null;
+    if (codVariante) {
+      variante = (prod.variante || []).find(
+        (v) => v.codVariante === codVariante
+      );
+    }
+
+    productoSeleccionado = prod;
+    varianteSeleccionada = variante || null;
+
+    const textoVar =
+      varianteSeleccionada?.titulo || varianteSeleccionada?.codVariante || "";
+    inputBusqueda.value = `${prod.codProducto || ""} - ${
+      prod.descProducto || "Producto"
+    }${textoVar ? " | " + textoVar : ""}`;
+
+    listaSugerencias.classList.add("hidden");
+  };
+
+  // 🔹 Toggle Normal / Regalo
+  toggle.onchange = () => {
+    const esRegalo = toggle.checked;
+    toggleCircle.style.transform = esRegalo
+      ? "translateX(20px)"
+      : "translateX(0px)";
+    toggleSwitch.style.backgroundColor = esRegalo ? "#3b82f6" : "#d1d5db";
+
+    // Reset selección al cambiar tipo
+    productoSeleccionado = null;
+    varianteSeleccionada = null;
+    inputBusqueda.value = "";
+    inputCantidad.value = 1;
+    renderSugerencias("");
+  };
+
+  // Estado inicial
+  toggle.checked = false;
+  toggle.onchange();
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+
+  // Botón cancelar
+  document.getElementById("btnCancelarAgregar").onclick = () => {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  };
+
+  // 🔹 Botón confirmar
+  document.getElementById("btnConfirmarAgregar").onclick = () => {
+    const cantidad = Number(inputCantidad.value) || 1;
+    const esRegalo = toggle.checked;
+
+    if (!productoSeleccionado) {
+      Swal.fire("Selecciona un producto / variante", "", "warning");
+      return;
+    }
+
+    const prod = productoSeleccionado;
+    const variante = varianteSeleccionada;
+
+    // Precio: sacamos de la variante si tiene, si no del producto
+    const precioBase = esRegalo ? 0 : variante?.precio ?? prod.precio ?? 0;
+
+    const precioUnitario = precioBase;
+    const precioTotal = precioUnitario * cantidad;
+
+    // Unificar si ya existe misma combinación producto+variante+regalo
+    const filas = [];
+    gridOptions.api.forEachNode((n) => filas.push(n.data));
+
+    const existente = filas.find((r) => {
+      const codP = r.codProducto || r.producto?.codProducto;
+      const codV = r.codVariante || r.variante?.codVariante;
+
+      return (
+        codP === prod.codProducto &&
+        (codV || "") === (variante?.codVariante || "") &&
+        !!(r.esRegalo || r.regalo) === !!esRegalo
+      );
+    });
+
+    if (existente) {
+      existente.cantidad += cantidad;
+      existente.precioTotal =
+        existente.cantidad * (existente.precioUnitario || 0);
+      gridOptions.api.applyTransaction({ update: [existente] });
+    } else {
+      gridOptions.api.applyTransaction({
+        add: [
+          {
+            variante: variante || {},
+            codProducto: prod.codProducto,
+            codVariante: variante?.codVariante || null,
+            nombreProducto: prod.descProducto || variante?.titulo || "Producto",
+            cantidad,
+            precioUnitario,
+            precioTotal,
+            esRegalo: esRegalo,
+          },
+        ],
+      });
+    }
+
+    reordenarFilasGrid();
+    renderResumenFinanciero(calcularFinanzas());
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+
+    Swal.fire({
+      title: esRegalo ? "🎁 Regalo agregado" : "✅ Producto agregado",
+      icon: "success",
+      timer: 1600,
+      showConfirmButton: false,
+      position: "top-end",
+      toast: true,
+    });
+  };
+
+  // 🔹 Cerrar sugerencias si se hace clic fuera del input/lista
+  const handleClickOutsideSugerencias = (e) => {
+    if (!listaSugerencias.contains(e.target) && e.target !== inputBusqueda) {
+      listaSugerencias.classList.add("hidden");
+    }
+  };
+
+  // lo registramos sin "once"
+  document.addEventListener("click", handleClickOutsideSugerencias);
 }
 
 // ======================= MODAL DETALLE PRODUCTO =======================
@@ -857,6 +1202,65 @@ function calcularFinanzas() {
   return { subtotal, igv, total };
 }
 
+function selectCard(card, amountId, showAmount) {
+  // 1. Obtener todas las tarjetas del contenedor
+  const parent = card.parentElement;
+  const cards = parent.querySelectorAll(".p-3.cursor-pointer");
+
+  cards.forEach((c) => {
+    c.classList.remove("border-purple-500", "bg-purple-50");
+    c.classList.add("border-gray-300");
+
+    // Icono izquierdo (check / circle)
+    const leftIcon = c.querySelector("i:first-child");
+    if (leftIcon) {
+      leftIcon.classList.remove("fa-check-circle", "fas", "text-purple-600");
+      leftIcon.classList.add("fa-circle", "far", "text-gray-400");
+    }
+
+    // Icono derecho
+    const rightIcon = c.querySelector("i:last-child");
+    if (rightIcon) {
+      rightIcon.classList.remove("text-purple-600");
+      rightIcon.classList.add("text-gray-400");
+    }
+  });
+
+  // 2. Activar tarjeta seleccionada
+  card.classList.remove("border-gray-300");
+  card.classList.add("border-purple-500", "bg-purple-50");
+
+  const leftIcon = card.querySelector("i:first-child");
+  if (leftIcon) {
+    leftIcon.classList.remove("fa-circle", "far", "text-gray-400");
+    leftIcon.classList.add("fa-check-circle", "fas", "text-purple-600");
+  }
+
+  const rightIcon = card.querySelector("i:last-child");
+  if (rightIcon) {
+    rightIcon.classList.remove("text-gray-400");
+    rightIcon.classList.add("text-purple-600");
+  }
+
+  // 3. Mostrar u ocultar el monto adelantado
+  const amountDiv = document.getElementById(amountId);
+
+  if (showAmount) {
+    amountDiv.classList.remove("hidden");
+    estadoAdelanto = true;
+
+    // Mantener el valor actual del input
+    montoAdelanto = Number(document.getElementById("montoAdelanto").value || 0);
+  } else {
+    amountDiv.classList.add("hidden");
+    document.getElementById("montoAdelanto").value = "0.00";
+    estadoAdelanto = false;
+    montoAdelanto = 0;
+  }
+
+  renderResumenFinanciero(calcularFinanzas());
+}
+
 async function cargarSelectsPedido(pedido = {}) {
   // Normalizar lo que viene del backend
   const tipoPagoPedido = (pedido.tipoPago ?? pedido.tipo_pago ?? "")
@@ -907,64 +1311,54 @@ function validarCamposObligatorios() {
   let valido = true;
   let primerError = null;
 
-  // ============================================
-  // 1. VALIDAR EMPRESA DE ENTREGA
-  // ============================================
-  const empresaSelect = document.getElementById("selectEmpresaEntrega");
-  limpiarErrorCampo(empresaSelect);
+  // === 1. Campos de texto / selects obligatorios ===
+  // (OJO: Tipo de comprobante NO va aquí)
+  const camposObligatorios = [
+    { id: "clienteDni", nombre: "DNI" },
+    { id: "clienteNombre", nombre: "Cliente" },
+    { id: "clienteTelefono", nombre: "Teléfono" },
+    { id: "clienteDireccion", nombre: "Dirección" },
+    { id: "clienteCiudad", nombre: "Ciudad del cliente" },
+    { id: "clienteProvincia", nombre: "Provincia" },
 
-  if (!empresaSelect.value || empresaSelect.value.trim() === "") {
-    valido = false;
-    marcarErrorCampo(empresaSelect);
-    if (!primerError) primerError = empresaSelect;
+    { id: "pedidoTipoPago", nombre: "Tipo de Pago" },
+    { id: "pedidoCiudad", nombre: "Ciudad del pedido" },
+  ];
+
+  camposObligatorios.forEach((c) => {
+    const el = document.getElementById(c.id);
+    limpiarErrorCampo(el);
+
+    if (!el) return;
+
+    const valor = (el.value || "").trim();
+    if (!valor) {
+      valido = false;
+      marcarErrorCampo(el);
+      if (!primerError) primerError = el;
+    }
+  });
+
+  // === 2. Validar monto adelantado (si corresponde) ===
+  if (estadoAdelanto === true) {
+    const montoInput = document.getElementById("montoAdelanto");
+    limpiarErrorCampo(montoInput);
+
+    // Texto a número con reemplazo de coma a punto
+    const valorNum = parseFloat(
+      (montoInput.value || "0").toString().replace(",", ".")
+    );
+
+    const { total } = calcularFinanzas();
+
+    if (isNaN(valorNum) || valorNum <= 0 || valorNum > total) {
+      valido = false;
+      marcarErrorCampo(montoInput);
+      if (!primerError) primerError = montoInput;
+    }
   }
 
-  // ============================================
-  // 2. VALIDAR EVIDENCIA
-  // Debe existir:
-  //   a) al menos 1 imagen total
-  //   b) al menos una evidencia con motivo "ENVIO"
-  // ============================================
-  const evidenciaBox = document.getElementById("evidenciaContainer");
-  evidenciaBox?.classList.remove("border-red-500", "animate-shake");
-
-  // A) Verificar si existe alguna imagen mostrada
-  const hayImgEnPreview = !!document.querySelector("#previewComprobante img");
-
-  // B) Nuevas imágenes subidas en esta sesión
-  const hayNuevas =
-    Array.isArray(pedidoActual.evidenciasFiles) &&
-    pedidoActual.evidenciasFiles.length > 0;
-
-  if (!hayImgEnPreview && !hayNuevas) {
-    valido = false;
-    evidenciaBox?.classList.add("border-red-500", "animate-shake");
-    if (!primerError) primerError = evidenciaBox;
-  }
-
-  // C) Verificar evidencia con motivo "ENVIO"
-  const evidenciasBD = Array.isArray(pedidoActual.evidenciasServidor)
-    ? pedidoActual.evidenciasServidor
-    : [];
-
-  const hayEnvioBD = evidenciasBD.some(
-    (e) => (e.motivo || "").toUpperCase() === "ENVIO"
-  );
-
-  // Evidencias nuevas: todas se marcan como ENVIAR
-  const hayEnvioNueva = pedidoActual.evidenciasFiles.length > 0;
-
-  const hayEnvio = hayEnvioBD || hayEnvioNueva;
-
-  if (!hayEnvio) {
-    valido = false;
-    evidenciaBox?.classList.add("border-red-500", "animate-shake");
-    if (!primerError) primerError = evidenciaBox;
-  }
-
-  // ============================================
-  // 3. VALIDAR QUE HAYA AL MENOS 1 PRODUCTO
-  // ============================================
+  // === 3. Validar que exista al menos 1 producto en el grid ===
   const rows = [];
   if (gridOptions?.api) {
     gridOptions.api.forEachNode((n) => rows.push(n.data));
@@ -972,6 +1366,7 @@ function validarCamposObligatorios() {
 
   if (rows.length === 0) {
     valido = false;
+    // marcamos visualmente la tabla (borde rojo en el contenedor)
     const gridEl = document.getElementById("detallePedidoGrid");
     if (gridEl) {
       gridEl.classList.add("border-2", "border-red-500", "animate-shake");
@@ -979,18 +1374,37 @@ function validarCamposObligatorios() {
         gridEl.classList.remove("border-red-500", "animate-shake");
       }, 600);
     }
-
-    if (!primerError) primerError = gridEl;
+    if (!primerError && gridEl) primerError = gridEl;
   }
 
-  // ============================================
-  // Mostrar mensaje y enfocar error
-  // ============================================
+  // === 4. Validar evidencia: debe haber al menos una imagen ===
+  const evidenciaBox = document.getElementById("evidenciaContainer");
+  if (evidenciaBox) {
+    evidenciaBox.classList.remove("border-red-500", "animate-shake");
+  }
+
+  // 1) imágenes que ya están renderizadas (de BD o nuevas)
+  const hayImgEnPreview = !!document.querySelector("#previewComprobante img");
+
+  // 2) nuevas imágenes en esta sesión (si estás usando pedidoActual.evidenciasFiles)
+  const hayNuevasEvidencias =
+    Array.isArray(pedidoActual.evidenciasFiles) &&
+    pedidoActual.evidenciasFiles.length > 0;
+
+  if (!hayImgEnPreview && !hayNuevasEvidencias) {
+    valido = false;
+    if (evidenciaBox) {
+      evidenciaBox.classList.add("border-red-500", "animate-shake");
+      if (!primerError) primerError = evidenciaBox;
+    }
+  }
+
+  // === 5. Si algo está mal, mostramos alerta y hacemos scroll al primer error ===
   if (!valido) {
     Swal.fire({
       icon: "warning",
-      title: "Datos incompletos",
-      text: "Por favor selecciona la empresa de envío, agrega la evidencia de envío y asegúrate de tener al menos un producto.",
+      title: "Campos incompletos",
+      text: "Por favor completa todos los campos obligatorios, agrega al menos un producto y una imagen de comprobante.",
     });
 
     return false;
@@ -1010,253 +1424,209 @@ function limpiarErrorCampo(el) {
 }
 
 // ========= GUARDAR =========
-async function onGuardarPedido(esEnvio = false) {
+async function onGuardarPedido(esAprobacion = false) {
   console.group("[onGuardarPedido]");
 
-  esEnvio = esEnvio === true;
+  esAprobacion = esAprobacion === true;
 
-  // 1) Validar requisitos
+  const { subtotal, igv, total } = calcularFinanzas();
+  const subtotalSinIgv = subtotal - igv;
+
   if (!validarCamposObligatorios()) {
     console.groupEnd();
     return;
   }
 
-  const { subtotal, igv, total } = calcularFinanzas();
-  const subtotalSinIgv = subtotal - igv;
-
-  // 2) Si envío ≠ guardar → cambiar estado
-  const estadoFinal = esEnvio ? 3 : 2;
-
-  // 3) Datos del cliente
-  const clienteActualizado = {
-    codCliente: pedidoActual.codCliente,
-    dni: clienteDni.value,
-    nombres: clienteNombre.value,
-    telefono: clienteTelefono.value,
-    direccion: clienteDireccion.value,
-    ciudad: clienteCiudad.value,
-    provincia: clienteProvincia.value,
-  };
-
-  // 4) Detalles del grid
-  const detalles = [];
-  gridOptions.api.forEachNode((n) => {
-    const r = n.data;
-    const esRegalo = !!r.esRegalo;
-    const precioUnitario = esRegalo ? 0 : r.precioUnitario || 0;
-    const precioTotal = esRegalo ? 0 : (r.cantidad || 0) * precioUnitario;
-
-    detalles.push({
-      idDetallePedido: r.idDetallePedido || 0,
-      codPedido: pedidoActual.codPedido,
-      codProducto: r.codProducto || r.producto?.codProducto || null,
-      variante: {
-        codVariante: r.codVariante || r.variante?.codVariante || null,
-      },
-      nombreProducto:
-        r.nombreProducto ||
-        r.producto?.descProducto ||
-        r.variante?.titulo ||
-        null,
-      cantidad: r.cantidad,
-      precioUnitario,
-      precioTotal,
-      esRegalo,
+  if (estadoAdelanto && Number(montoAdelanto || 0) > total) {
+    Swal.fire({
+      icon: "error",
+      title: "Adelanto inválido",
+      text: "El adelanto no puede ser mayor al monto total del pedido.",
     });
-  });
+    console.groupEnd();
+    return;
+  }
 
-  // 5) Evidencias nuevas → SIEMPRE serán motivo ENVIAR
-  const evidenciasNuevas = pedidoActual.evidenciasFiles ?? [];
-
-  const evidenciasPayload = evidenciasNuevas.map(() => ({
-    idEvidenciaPedido: null,
-    codPedido: pedidoActual.codPedido,
-    url: null,
-    motivo: "ENVIO",
-  }));
-
-  // 7) Log
-  const usr = JSON.parse(sessionStorage.getItem("usuario"));
-  const logNuevo = {
-    idUsuario: usr.idUsuario,
-    codPedido: pedidoActual.codPedido,
-    idEstadoP: estadoFinal,
-    motivoLog: esEnvio
-      ? "Pedido ENVIADO"
-      : "Pedido guardado sin cambiar estado",
-  };
-
-  // 8) Construir objeto para backend
-  const pedido = {
-    codPedido: pedidoActual.codPedido,
-    documento: null,
-
-    estadoPedido: { idEstadoPedido: estadoFinal },
-
-    tipoComprobante: pedidoComprobante.value,
-    tipoPago: pedidoTipoPago.value,
-    ciudad: pedidoCiudad.value,
-    observacion: pedidoObservaciones.value,
-
-    empresaEntrega: {
-      idEmpresaEntrega: Number(selectEmpresaEntrega.value || 1),
-    },
-
-    subtotal: Number(subtotalSinIgv.toFixed(2)),
-    igv: Number(igv.toFixed(2)),
-    montoTotal: Number(total.toFixed(2)),
-
-    adelanto: estadoAdelanto,
-    montoAdelanto: Number(montoAdelanto || 0),
-
-    cliente: clienteActualizado,
-    detalles,
-
-    evidencias: evidenciasPayload,
-    evidenciasEliminar: pedidoActual.evidenciasEliminar || [],
-
-    logNuevo,
-  };
-
-  // 9) FormData
-  const formData = new FormData();
-  formData.append(
-    "pedido",
-    new Blob([JSON.stringify(pedido)], { type: "application/json" })
-  );
-
-  evidenciasNuevas.forEach((file) => formData.append("evidencias", file));
-
-  // 10) POST al MISMO endpoint de antes
   try {
+    if (!pedidoActual.codPedido) {
+      Swal.fire(
+        "Sin COD de pedido",
+        "No se encontró el COD del pedido.",
+        "warning"
+      );
+      console.groupEnd();
+      return;
+    }
+
+    // estado del pedido
+    const estadoFinal = esAprobacion ? 2 : 5;
+
+    // 1) Cliente
+    const clienteActualizado = {
+      codCliente: pedidoActual.codCliente,
+      dni: document.getElementById("clienteDni").value,
+      nombres: document.getElementById("clienteNombre").value,
+      telefono: document.getElementById("clienteTelefono").value,
+      direccion: document.getElementById("clienteDireccion").value,
+      ciudad: document.getElementById("clienteCiudad").value,
+      provincia: document.getElementById("clienteProvincia").value,
+    };
+
+    // 2) Detalles desde el grid
+    const detalles = [];
+    const filas = [];
+    gridOptions.api.forEachNode((n) => filas.push(n.data));
+
+    filas.forEach((row) => {
+      const esRegalo = !!row.esRegalo;
+      const precioUnitario = esRegalo ? 0 : row.precioUnitario || 0;
+      const precioTotal = esRegalo ? 0 : (row.cantidad || 0) * precioUnitario;
+
+      detalles.push({
+        idDetallePedido: row.idDetallePedido || 0,
+        codPedido: pedidoActual.codPedido,
+        codProducto: row.codProducto || row.producto?.codProducto || null,
+        variante: {
+          codVariante: row.codVariante || row.variante?.codVariante || null,
+        },
+        nombreProducto:
+          row.nombreProducto ||
+          row.producto?.descProducto ||
+          row.variante?.titulo ||
+          null,
+        cantidad: row.cantidad,
+        precioUnitario,
+        precioTotal,
+        esRegalo: esRegalo,
+      });
+    });
+
+    // 3) Totales (sin IGV / con IGV)
+    const subtotalRed = Number(subtotalSinIgv.toFixed(2));
+    const igvRed = Number(igv.toFixed(2));
+    const totalRed = Number(total.toFixed(2));
+
+    // 4) Archivos nuevos seleccionados en esta sesión
+    const evidenciasNuevas =
+      Array.isArray(pedidoActual.evidenciasFiles) &&
+      pedidoActual.evidenciasFiles.length
+        ? pedidoActual.evidenciasFiles
+        : [];
+
+    // 5) Metadatos para el DTO: uno por cada archivo nuevo
+    const evidenciasPayload = evidenciasNuevas.map(() => ({
+      idEvidenciaPedido: null, // nuevo => sin ID
+      codPedido: pedidoActual.codPedido,
+      url: null,
+      motivo: "REVISION",
+    }));
+
+    // Log
+    const usuarioSesion = JSON.parse(sessionStorage.getItem("usuario"));
+    const idUsuario = usuarioSesion.idUsuario;
+    const username = usuarioSesion.usuario;
+    const nombreCompleto = `${usuarioSesion.nombre} ${usuarioSesion.apPaterno} ${usuarioSesion.apMaterno}`;
+    const motivoGenerado = esAprobacion
+      ? `Pedido REVISADO por ${nombreCompleto} (${username}, id=${idUsuario})`
+      : `Actualización del pedido por ${nombreCompleto} (${username}, id=${idUsuario})`;
+
+    const logNuevo = {
+      idUsuario: idUsuario,
+      codPedido: pedidoActual.codPedido,
+      idEstadoP: estadoFinal,
+      motivoLog: motivoGenerado,
+    };
+
+    // 6) Objeto pedido que espera el backend
+    const pedido = {
+      codPedido: pedidoActual.codPedido,
+      documento: document.getElementById("pedidoDocumento")?.value || null,
+
+      estadoPedido: {
+        idEstadoPedido: estadoFinal,
+      },
+
+      tipoComprobante:
+        document.getElementById("pedidoComprobante").value || null,
+      tipoPago: document.getElementById("pedidoTipoPago").value || null,
+      ciudad: document.getElementById("pedidoCiudad").value || null,
+      observacion: document.getElementById("pedidoObservaciones").value || null,
+
+      empresaEntrega: {
+        idEmpresaEntrega: 1,
+      },
+
+      subtotal: subtotalRed,
+      igv: igvRed,
+      montoTotal: totalRed,
+
+      adelanto: estadoAdelanto,
+      montoAdelanto: Number(montoAdelanto || 0),
+
+      cliente: clienteActualizado,
+      detalles,
+      evidencias: evidenciasPayload,
+      evidenciasEliminar: pedidoActual.evidenciasEliminar || [],
+      logNuevo,
+    };
+
+    // 7) Armar FormData: JSON + archivos
+    const formData = new FormData();
+    formData.append(
+      "pedido",
+      new Blob([JSON.stringify(pedido)], { type: "application/json" })
+    );
+
+    evidenciasNuevas.forEach((file) => {
+      formData.append("evidencias", file);
+    });
+
+    console.log("PAYLOAD ENVIADO:", JSON.stringify(pedido, null, 2));
+
+    // 8) POST al endpoint
     const resp = await fetch(ENDPOINT_GUARDAR, {
       method: "POST",
       body: formData,
     });
 
     const rawText = await resp.text();
-    let data;
+    let data = null;
     try {
-      data = JSON.parse(rawText);
+      data = rawText ? JSON.parse(rawText) : null;
     } catch {
-      data = {};
+      data = null;
     }
 
-    if (!resp.ok) throw new Error(data?.message || rawText);
+    console.log("[RESP GUARDAR]", {
+      status: resp.status,
+      ok: resp.ok,
+      rawText,
+      data,
+    });
+
+    if (!resp.ok) {
+      throw new Error(data?.message || rawText || `Error HTTP ${resp.status}`);
+    }
 
     Swal.fire({
       icon: "success",
-      title: esEnvio ? "Pedido ENVIADO" : "Pedido guardado",
-      timer: 1500,
+      title: esAprobacion ? "Pedido aprobado" : "Pedido guardado",
+      timer: 2200,
       showConfirmButton: false,
-    }).then(() => {
-      if (esEnvio) {
-        window.location.href = "/pedidos/listaPedidos";
-      }
     });
 
-    // limpiar buffers
+    // limpiar archivos nuevos y lista de eliminaciones
     pedidoActual.evidenciasFiles = [];
     pedidoActual.evidenciasEliminar = [];
   } catch (err) {
     console.error("Error al guardar pedido:", err);
-    Swal.fire("Error", err.message || "Error desconocido", "error");
-  }
-
-  console.groupEnd();
-}
-
-// ========================= INIT MODAL REGRESAR PEDIDO =========================
-function initModalRegresarPedido() {
-  const btnAbrir = document.getElementById("btnRegresarPedido");
-  const btnCancelar = document.getElementById("btnCancelarRegreso");
-  const btnConfirmar = document.getElementById("btnConfirmarRegreso");
-  const modal = document.getElementById("modalRegresarPedido");
-  const motivoInput = document.getElementById("motivoRegreso");
-
-  if (!modal) {
-    console.error("⚠ No existe el modalRegresarPedido en el HTML.");
-    return;
-  }
-
-  // Abrir modal
-  btnAbrir?.addEventListener("click", () => {
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-  });
-
-  // Cancelar
-  btnCancelar?.addEventListener("click", () => {
-    cerrarModalRegresar();
-  });
-
-  // Confirmar
-  btnConfirmar?.addEventListener("click", async () => {
-    const motivo = motivoInput.value.trim();
-
-    if (motivo.length < 3) {
-      Swal.fire(
-        "Motivo requerido",
-        "Debes ingresar un motivo válido.",
-        "warning"
-      );
-      return;
-    }
-
-    await regresarPedido(motivo);
-    cerrarModalRegresar();
-  });
-}
-
-function cerrarModalRegresar() {
-  const modal = document.getElementById("modalRegresarPedido");
-  modal.classList.add("hidden");
-  modal.classList.remove("flex");
-}
-
-async function regresarPedido(motivoUsuario) {
-  console.log("↩ Regresando pedido a revisión...");
-
-  const usr = JSON.parse(sessionStorage.getItem("usuario"));
-
-  // Estado 5 = REVISIÓN
-  const nuevoEstado = 5;
-
-  // Log generado en el front
-  const logNuevo = {
-    idUsuario: usr.idUsuario,
-    codPedido: pedidoActual.codPedido,
-    idEstadoP: nuevoEstado,
-    motivoLog: `Pedido regresado a revisión | Motivo: ${motivoUsuario}`,
-  };
-
-  // Construcción de payload mínimo
-  const payload = {
-    codPedido: pedidoActual.codPedido,
-    estadoPedido: { idEstadoPedido: nuevoEstado },
-    logNuevo,
-  };
-
-  try {
-    const resp = await fetch("/api/pedidos/regresarPedido", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!resp.ok) throw new Error("No se pudo regresar el pedido");
-
-    Swal.fire({
-      icon: "success",
-      title: "Pedido regresado a revisión",
-      timer: 1500,
-      showConfirmButton: false,
-    }).then(() => {
-      window.location.href = "/pedidos/listaPedidos";
-    });
-  } catch (err) {
-    console.error(err);
-    Swal.fire("Error", "No se completó la operación", "error");
+    Swal.fire(
+      "Error al guardar",
+      err.message || "Fallo desconocido en el guardado",
+      "error"
+    );
+  } finally {
+    console.groupEnd();
   }
 }
 
@@ -1264,5 +1634,4 @@ async function regresarPedido(motivoUsuario) {
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🔥 DetallePedido.js cargado por <script>");
   initDetallePedido();
-  initModalRegresarPedido();
 });

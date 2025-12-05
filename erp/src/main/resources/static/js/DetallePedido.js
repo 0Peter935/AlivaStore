@@ -9,10 +9,15 @@ let productosNormales = [];
 let productosRegalo = [];
 let estadoAdelanto = false;
 let montoAdelanto = 0;
+let productoSeleccionado = null;
+let varianteSeleccionada = null;
 
 let pedidoActual = {
   codPedido: null,
-  evidenciaFile: null,
+  codCliente: null,
+  evidenciasFiles: [],
+  evidenciasServidor: [],
+  evidenciasEliminar: [],
 };
 
 // ======================= INIT =======================
@@ -32,6 +37,11 @@ async function initDetallePedido() {
   );
   console.log("Pedido cargado:", pedido);
 
+  pedidoActual.evidenciasServidor = Array.isArray(pedido.evidencias)
+    ? pedido.evidencias
+    : [];
+  pedidoActual.evidenciasEliminar = [];
+
   cargarSelectsPedido(pedido);
   initEvidencia();
   initPago();
@@ -40,13 +50,18 @@ async function initDetallePedido() {
   await cargarProductos();
 
   // Normalizar detalles: regalo -> booleano
-  const detalles = (pedido.detalles || []).map((d) => ({
-    ...d,
-    producto: {
-      ...d.producto,
-      regalo: d.producto?.regalo === true || d.producto?.regalo === 1,
-    },
-  }));
+  const detalles = (pedido.detalles || []).map((d) => {
+    const r = d.esRegalo === true || d.esRegalo === 1;
+
+    return {
+      ...d,
+      esRegalo: r,
+      producto: {
+        ...(d.producto || {}),
+        regalo: r, // compatibilidad con el código existente
+      },
+    };
+  });
   initGridProductos(detalles);
 
   // Renderizar secciones
@@ -66,6 +81,11 @@ async function initDetallePedido() {
   document
     .getElementById("btnGuardarPedido")
     ?.addEventListener("click", onGuardarPedido);
+
+  // Botón aprobar
+  document
+    .getElementById("btnAprobarPedido")
+    ?.addEventListener("click", () => onGuardarPedido(true)); // ← true significa APROBAR
 }
 
 // ======================= HTTP =======================
@@ -95,28 +115,68 @@ async function cargarProductos() {
   }
 }
 
-// ======================= RENDER =======================
+// ======================= RENDERS =======================
 function renderCliente(cliente) {
-  const cont = document.getElementById("infoCliente");
-  if (!cont || !cliente) return;
-  cont.innerHTML = `
-      <p><strong>DNI:</strong> ${cliente.dni ?? "-"}</p>
-      <p><strong>Nombre:</strong> ${cliente.nombres ?? "-"}</p>
-      <p><strong>Teléfono:</strong> ${cliente.telefono ?? "-"}</p>
-      <p><strong>Correo:</strong> ${
-        cliente.direccion + ", " + cliente.ciudad + ", " + cliente.provincia ??
-        ""
-      }</p>
-    `;
+  if (!cliente) return;
+
+  document.getElementById("clienteDni").value = cliente.dni ?? "";
+  document.getElementById("clienteNombre").value = cliente.nombres ?? "";
+  document.getElementById("clienteTelefono").value = cliente.telefono ?? "";
+  document.getElementById("clienteDireccion").value = cliente.direccion ?? "";
+  document.getElementById("clienteCiudad").value = cliente.ciudad ?? "";
+  document.getElementById("clienteProvincia").value = cliente.provincia ?? "";
+
+  pedidoActual.codCliente = cliente.codCliente;
 }
 
-function renderPedido(pedido) {
-  document.getElementById("pedidoDocumento").value = pedido.documento || "";
-  document.getElementById("pedidoComprobante").value =
-    pedido.tipoComprobante || "";
-  document.getElementById("pedidoCiudad").value = pedido.ciudad || "";
-  document.getElementById("pedidoEmpresaEntrega").value =
-    pedido.empresaEntrega?.razonSocial || "";
+function renderPedido(pedido = {}) {
+  // Helpers
+  const get = (id) => document.getElementById(id);
+
+  const setValue = (id, value) => {
+    const el = get(id);
+    if (!el) return;
+    el.value = value ?? "";
+  };
+
+  const setText = (id, value) => {
+    const el = get(id);
+    if (!el) return;
+    el.textContent = value ?? "";
+  };
+
+  // Normalizar campos que vienen del backend
+  const tipoPago = (pedido.tipoPago ?? pedido.tipo_pago ?? "")
+    .toString()
+    .trim()
+    .toUpperCase();
+
+  const tipoComprobante = (
+    pedido.tipoComprobante ??
+    pedido.tipo_comprobante ??
+    ""
+  )
+    .toString()
+    .trim()
+    .toUpperCase();
+
+  const ciudad = pedido.ciudad ?? pedido.ciudadPedido ?? "";
+  const observacion = pedido.observacion ?? pedido.observaciones ?? "";
+
+  // N° de orden
+  setText("pedidoDocumentoLabel", `N° ORDEN: ${pedido.documento ?? "---"}`);
+
+  // Inputs
+  setValue("pedidoCiudad", ciudad);
+  setValue("pedidoObservaciones", observacion);
+
+  // Selects: primero dejamos el valor, y luego
+  // cargarSelectsPedido se encarga de marcar el option correcto
+  const selPago = get("pedidoTipoPago");
+  if (selPago) selPago.value = tipoPago;
+
+  const selComp = get("pedidoComprobante");
+  if (selComp) selComp.value = tipoComprobante;
 }
 
 function renderEvidencia(pedido) {
@@ -124,72 +184,221 @@ function renderEvidencia(pedido) {
   const inputFile = document.getElementById("inputComprobante");
   if (!preview || !inputFile) return;
 
-  preview.innerHTML = "";
+  // 🔄 reset contenedor
+  preview.innerHTML = `
+    <div
+      id="dropEvidencias"
+      class="w-full h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 cursor-default hover:text-purple-600 hover:border-purple-400 transition relative overflow-hidden"
+    >
+      <i class="fas fa-cloud-upload-alt text-4xl mb-2"></i>
+      <p class="text-sm font-medium text-center">
+        Sube imágenes de comprobante<br/>
+        <span class="text-xs text-gray-400">
+          Haz clic en el ícono, arrastra o pega (Ctrl+V)
+        </span>
+      </p>
+    </div>
+  `;
 
-  if (
-    pedido.evidencia &&
-    pedido.evidencia.trim() !== "" &&
-    pedido.evidencia.includes(".")
-  ) {
-    // Contenedor principal centrado
-    const wrapper = document.createElement("div");
-    wrapper.className = `
-      flex flex-col items-center justify-center 
-      mx-auto my-3 p-3 rounded-lg shadow-md border border-gray-300 
-      bg-white transition-transform duration-300 group hover:scale-105
-    `;
-
-    // Imagen centrada
-    const img = document.createElement("img");
-    img.src = `/recursos/img/evidencia/${pedido.evidencia}`;
-    img.alt = "Comprobante";
-    img.className = `
-      max-h-64 w-auto rounded-md shadow-sm 
-      object-contain mx-auto
-    `;
-    img.onerror = () => {
-      wrapper.innerHTML = `
-        <div class="flex flex-col items-center justify-center h-40 cursor-pointer text-gray-400 hover:text-purple-600"
-             onclick="document.getElementById('inputComprobante').click()">
-          <i class="fas fa-cloud-upload-alt text-3xl mb-2"></i>
-          <p class="text-sm font-medium">Sube una imagen de comprobante</p>
-        </div>`;
+  const dropZone = document.getElementById("dropEvidencias");
+  const icono = dropZone.querySelector("i.fas.fa-cloud-upload-alt");
+  if (icono) {
+    icono.style.cursor = "pointer";
+    icono.onclick = (e) => {
+      e.stopPropagation();
+      inputFile.click();
     };
-
-    // 🔹 Nombre del archivo debajo
-    const fileName = document.createElement("p");
-    fileName.className = "text-sm text-gray-500 text-center mt-2";
-    fileName.textContent = pedido.evidencia;
-
-    // 🔹 Overlay opcional para cambiar evidencia (solo si ya está implementado)
-    const overlay = document.createElement("div");
-    overlay.className =
-      "absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity duration-300";
-    overlay.innerHTML = `
-      <i class="fas fa-sync-alt text-white text-3xl mb-2 animate-spin-slow"></i>
-      <p class="text-white font-semibold">Cambiar evidencia</p>
-    `;
-    overlay.onclick = () => inputFile.click();
-
-    // 🔹 Estructura final
-    const overlayContainer = document.createElement("div");
-    overlayContainer.className = "relative inline-block";
-    overlayContainer.appendChild(img);
-    overlayContainer.appendChild(overlay);
-
-    wrapper.appendChild(overlayContainer);
-    wrapper.appendChild(fileName);
-    preview.appendChild(wrapper);
-  } else {
-    // 🔹 Si no hay evidencia
-    preview.innerHTML = `
-      <div class="flex flex-col items-center justify-center h-40 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 cursor-pointer hover:text-purple-600 hover:border-purple-400 transition"
-           onclick="document.getElementById('inputComprobante').click()">
-        <i class="fas fa-cloud-upload-alt text-4xl mb-2"></i>
-        <p class="text-sm font-medium">Sube una imagen de comprobante</p>
-      </div>
-    `;
   }
+
+  dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.classList.add("border-purple-400", "text-purple-600");
+  });
+
+  dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("border-purple-400", "text-purple-600");
+  });
+
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("border-purple-400", "text-purple-600");
+
+    const files = e.dataTransfer?.files;
+    if (!files || !files.length) return;
+
+    if (!pedidoActual.evidenciasFiles) pedidoActual.evidenciasFiles = [];
+
+    for (const f of files) {
+      if (!f.type.startsWith("image/")) continue;
+      pedidoActual.evidenciasFiles.push(f);
+    }
+
+    renderPreviewEvidencias();
+  });
+
+  // 🖼️ Evidencias que ya vienen guardadas en BD (solo mostrar)
+  const evidenciasServidor = pedidoActual.evidenciasServidor || [];
+
+  if (evidenciasServidor.length) {
+    const container = document.createElement("div");
+    container.className =
+      "mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3";
+
+    evidenciasServidor.forEach((ev, index) => {
+      const url = ev.url || ev.ruta || "";
+      const nombre = ev.nombre || ev.nombreArchivo || `evidencia-${index + 1}`;
+      const idEv = ev.idEvidenciaPedido;
+      const motivo = (ev.motivo || "").toUpperCase();
+      const puedeEliminar = motivo === "APROPACION";
+
+      const card = document.createElement("div");
+      card.className =
+        "relative border rounded-lg overflow-hidden bg-white shadow-sm";
+      card.dataset.idEvidencia = idEv; // para ubicarla luego
+
+      card.innerHTML = `
+      <img src="${url}"
+           class="w-full h-24 object-cover"
+           alt="${nombre}" />
+      <div class="px-2 py-1 text-[11px] text-gray-600 truncate">
+        ${nombre}
+      </div>
+      ${
+        puedeEliminar
+          ? `
+            <button
+              type="button"
+              class="absolute top-1 right-1 bg-white/80 hover:bg-red-50 text-red-500 rounded-full w-6 h-6 flex items-center justify-center shadow btn-del-evidencia"
+              title="Eliminar evidencia de APROPACION"
+              data-id="${idEv}"
+            >
+              <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+          `
+          : `
+            <span
+              class="absolute top-1 right-1 text-[9px] px-2 py-0.5 rounded-full bg-gray-200 text-gray-500 cursor-not-allowed"
+              title="Esta evidencia no se puede eliminar (motivo: ${
+                motivo || "N/A"
+              })"
+            >
+              ${motivo || "FIJO"}
+            </span>
+          `
+      }
+    `;
+
+      container.appendChild(card);
+    });
+
+    // 👉 Evento delegado para borrar SOLO las de APROPACION
+    container.addEventListener("click", (e) => {
+      const btn = e.target.closest(".btn-del-evidencia");
+      if (!btn) return;
+
+      const id = Number(btn.dataset.id);
+      if (Number.isNaN(id)) return;
+
+      // Buscamos la evidencia para verificar motivo por si acaso
+      const ev = pedidoActual.evidenciasServidor.find(
+        (x) => x.idEvidenciaPedido === id
+      );
+      const motivo = (ev?.motivo || "").toUpperCase();
+
+      if (motivo !== "APROPACION") {
+        Swal.fire(
+          "No permitido",
+          "Solo se pueden eliminar evidencias con motivo APROPACION.",
+          "info"
+        );
+        return;
+      }
+
+      // Aseguramos array
+      if (!Array.isArray(pedidoActual.evidenciasEliminar)) {
+        pedidoActual.evidenciasEliminar = [];
+      }
+
+      if (!pedidoActual.evidenciasEliminar.includes(id)) {
+        pedidoActual.evidenciasEliminar.push(id);
+      }
+
+      // Quitar del DOM
+      const card = btn.closest("[data-id-evidencia]");
+      if (card) card.remove();
+
+      // Quitar del array en memoria
+      pedidoActual.evidenciasServidor = pedidoActual.evidenciasServidor.filter(
+        (x) => x.idEvidenciaPedido !== id
+      );
+
+      console.log("Marcada para borrar:", pedidoActual.evidenciasEliminar);
+    });
+
+    preview.appendChild(container);
+  }
+
+  // 🆕 Miniaturas nuevas
+  renderPreviewEvidencias();
+}
+
+function renderPreviewEvidencias() {
+  const preview = document.getElementById("previewComprobante");
+  if (!preview) return;
+
+  // borrar contenedor previo de nuevas evidencias, si existe
+  const old = preview.querySelector("#nuevasEvidencias");
+  if (old) old.remove();
+
+  if (!pedidoActual.evidenciasFiles || !pedidoActual.evidenciasFiles.length) {
+    return;
+  }
+
+  const container = document.createElement("div");
+  container.id = "nuevasEvidencias";
+  container.className =
+    "mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3";
+
+  pedidoActual.evidenciasFiles.forEach((file, index) => {
+    const card = document.createElement("div");
+    card.className =
+      "relative border rounded-lg overflow-hidden bg-white shadow-sm group";
+
+    const url = URL.createObjectURL(file);
+
+    card.innerHTML = `
+      <img src="${url}"
+           class="w-full h-24 object-cover"
+           alt="${file.name}" />
+      <div class="px-2 py-1 text-[11px] text-gray-600 truncate">
+        ${file.name}
+      </div>
+      <button
+        type="button"
+        class="absolute top-1 right-1 bg-white/80 hover:bg-red-50 text-red-500 rounded-full w-6 h-6 flex items-center justify-center shadow"
+        title="Quitar"
+        data-index="${index}"
+      >
+        <i class="fa-solid fa-xmark text-xs"></i>
+      </button>
+    `;
+
+    container.appendChild(card);
+  });
+
+  preview.appendChild(container);
+
+  // eliminar uno de la lista
+  container.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-index]");
+    if (!btn) return;
+
+    const idx = Number(btn.dataset.index);
+    if (Number.isNaN(idx)) return;
+
+    pedidoActual.evidenciasFiles.splice(idx, 1);
+    renderPreviewEvidencias();
+  });
 }
 
 function renderEstadoPago(pedido) {
@@ -208,15 +417,25 @@ function renderEstadoPago(pedido) {
   [pagoCompletoCard, pagoAdelantoCard].forEach((card) => {
     card.classList.remove("border-purple-500", "bg-purple-50");
     card.classList.add("border-gray-300");
-    const icon = card.querySelector("i.fa-check-circle");
+    const icon = card.querySelector("i.fa-check-circle, i.fa-circle");
     if (icon) {
       icon.classList.remove("fa-check-circle", "fas", "text-purple-600");
       icon.classList.add("fa-circle", "far", "text-gray-400");
     }
   });
 
-  if (pedido.adelanto === false) {
-    // Marcar pago completo
+  if (pedido.adelanto === true) {
+    // ✅ Pago con adelanto
+    pagoAdelantoCard.classList.add("border-purple-500", "bg-purple-50");
+    const icon = pagoAdelantoCard.querySelector("i.far.fa-circle");
+    if (icon) {
+      icon.classList.remove("fa-circle", "far", "text-gray-400");
+      icon.classList.add("fa-check-circle", "fas", "text-purple-600");
+    }
+    adelantoContainer.classList.remove("hidden");
+    inputAdelanto.value = Number(pedido.montoAdelanto || 0).toFixed(2);
+  } else {
+    // ✅ Sin adelanto
     pagoCompletoCard.classList.add("border-purple-500", "bg-purple-50");
     const icon = pagoCompletoCard.querySelector("i.far.fa-circle");
     if (icon) {
@@ -225,20 +444,10 @@ function renderEstadoPago(pedido) {
     }
     adelantoContainer.classList.add("hidden");
     inputAdelanto.value = "0.00";
-  } else {
-    // Marcar pago con adelanto
-    pagoAdelantoCard.classList.add("border-purple-500", "bg-purple-50");
-    const icon = pagoAdelantoCard.querySelector("i.far.fa-circle");
-    if (icon) {
-      icon.classList.remove("fa-circle", "far", "text-gray-400");
-      icon.classList.add("fa-check-circle", "fas", "text-purple-600");
-    }
-    adelantoContainer.classList.remove("hidden");
-    inputAdelanto.value = Number(pedido.adelanto || 0).toFixed(2);
   }
 
-  // Sincroniza variables globales
-  estadoAdelanto = pedido.adelanto;
+  // Sincronizar variables globales
+  estadoAdelanto = !!pedido.adelanto;
   montoAdelanto = Number(pedido.montoAdelanto || 0);
 }
 
@@ -247,43 +456,46 @@ function renderNotas(notas = []) {
   if (!cont) return;
 
   if (notas.length === 0) {
-    cont.innerHTML = `<p class="text-gray-500 italic">Sin notas registradas</p>`;
+    cont.innerHTML = `
+      <p class="text-gray-500 italic">Sin notas registradas</p>
+    `;
     return;
   }
 
   cont.innerHTML = notas
     .map(
       (n) => `
-      <div class="border border-gray-300 rounded-lg p-3 bg-gray-50">
-        <p class="text-xs text-gray-500 mb-1">
-          <strong>ID #${n.idNotaPedido}</strong>
-        </p>
-        <p><strong>${n.titulo}:</strong></p>
-        <p class="text-gray-700">${n.descripcion}</p>
-      </div>
-    `
+        <div class="nota-card border border-gray-300 rounded-lg p-2.5 bg-gray-50 shadow-sm leading-tight">
+          <p class="text-[11px] text-gray-500 mb-1 font-semibold">
+            ID #${n.idNotaPedido}
+          </p>
+          <p class="font-semibold text-[14px]">${n.titulo}:</p>
+          <p class="text-gray-700 text-[13px] whitespace-pre-line">
+            ${n.descripcion}
+          </p>
+        </div>
+      `
     )
     .join("");
 }
 
-function renderResumenFinanciero({ subtotal, igv, total, adelanto }) {
+function renderResumenFinanciero({ subtotal, igv, total }) {
   const subtotalEl = document.getElementById("subtotalValor");
   const igvEl = document.getElementById("igvValor");
-  const adelantoEl = document.getElementById("adelantoValor");
   const totalEl = document.getElementById("totalValor");
 
-  subtotalEl.textContent = `S/ ${subtotal.toFixed(2)}`;
+  // 👇 Subtotal que quieres mostrar en el resumen: subtotal - IGV
+  const subtotalSinIgv = subtotal - igv;
+
+  subtotalEl.textContent = `S/ ${subtotalSinIgv.toFixed(2)}`;
   igvEl.textContent = `S/ ${igv.toFixed(2)}`;
   totalEl.textContent = `S/ ${total.toFixed(2)}`;
 
-  if (estadoAdelanto === false) {
-    adelantoEl.innerHTML = `<span class="text-green-600 font-semibold">Pagado</span>`;
-  } else if (adelanto > 0) {
-    adelantoEl.innerHTML = `<span class="text-yellow-600 font-semibold">S/ ${adelanto.toFixed(
-      2
-    )}</span>`;
-  } else {
-    adelantoEl.innerHTML = `<span class="text-gray-500 italic">Sin adelanto</span>`;
+  // 👇 Subtotal que va debajo de la tabla (subtotal de productos)
+  const tablaSubtotalEl = document.getElementById("subtotalProductosTabla");
+  if (tablaSubtotalEl) {
+    // aquí tiene sentido mostrar el subtotal bruto (antes de IGV)
+    tablaSubtotalEl.textContent = `S/ ${subtotal.toFixed(2)}`;
   }
 }
 
@@ -293,63 +505,143 @@ function initGridProductos(detalles) {
     {
       headerName: "N°",
       valueGetter: (params) => params.node.rowIndex + 1,
-      width: 80,
+      minWidth: 70,
+      maxWidth: 70,
+      sortable: true,
+      resizable: false,
       cellClass: "text-center",
     },
-    { headerName: "Descripción", field: "nombreProducto", flex: 2 },
     {
-      headerName: "Cantidad",
-      field: "cantidad",
-      editable: (p) => !p.data.producto?.regalo,
-      width: 120,
-      cellClass: "text-center",
-      valueSetter: (p) => {
-        const v = Number(p.newValue);
-        if (Number.isNaN(v) || v < 1) return false;
-        p.data.cantidad = v;
-        p.data.precioTotal = (p.data.precioUnitario || 0) * v;
-        renderResumenFinanciero(calcularFinanzas());
-        return true;
+      headerName: "DESCRIPCIÓN",
+      field: "nombreProducto",
+      minWidth: 430,
+      maxWidth: 430,
+      sortable: true,
+      resizable: false,
+      autoHeight: true,
+      cellRenderer: (params) => {
+        return `<div class="wrap-text">${params.value || ""}</div>`;
       },
     },
     {
-      headerName: "Precio Unitario",
+      headerName: "CANTIDAD",
+      field: "cantidad",
+      minWidth: 130,
+      maxWidth: 130,
+      sortable: true,
+      resizable: false,
+      cellRenderer: (params) => {
+        // contenedor de los botones y el valor
+        const wrapper = document.createElement("div");
+        // 👈 ahora alineado a la izquierda
+        wrapper.className = "flex items-center justify-start gap-2";
+
+        const btnMinus = document.createElement("button");
+        btnMinus.innerHTML = `<i class="fa-solid fa-minus"></i>`;
+        btnMinus.className =
+          "w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 text-[12px]";
+
+        const valueSpan = document.createElement("span");
+        valueSpan.textContent = params.value ?? 1;
+        valueSpan.className = "min-w-[16px] text-center text-[13px]";
+
+        const btnPlus = document.createElement("button");
+        btnPlus.innerHTML = `<i class="fa-solid fa-plus"></i>`;
+        btnPlus.className =
+          "w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 text-[12px]";
+
+        const updateCantidad = (delta) => {
+          let v = Number(params.data.cantidad || 0) + delta;
+          if (v < 1) v = 1;
+
+          params.data.cantidad = v;
+          params.data.precioTotal = v * (params.data.precioUnitario || 0);
+          valueSpan.textContent = v;
+
+          params.api.refreshCells({
+            rowNodes: [params.node],
+            columns: ["subtotal"],
+            force: true,
+          });
+
+          renderResumenFinanciero(calcularFinanzas());
+        };
+
+        btnMinus.onclick = (e) => {
+          e.stopPropagation();
+          updateCantidad(-1);
+        };
+
+        btnPlus.onclick = (e) => {
+          e.stopPropagation();
+          updateCantidad(1);
+        };
+
+        wrapper.append(btnMinus, valueSpan, btnPlus);
+        return wrapper;
+      },
+    },
+    {
+      headerName: "PRECIO U.",
       field: "precioUnitario",
-      editable: (p) => !p.data.producto?.regalo,
-      width: 150,
+      minWidth: 130,
+      maxWidth: 130,
+      sortable: true,
+      resizable: false,
+      cellClass: "flex items-center", // opcional para centrar vertical
+
       cellRenderer: (p) =>
-        p.data.producto?.regalo
+        p.data.esRegalo
           ? `<span class="text-gray-400">----</span>`
           : `S/ ${(p.value ?? 0).toFixed(2)}`,
-      valueSetter: (p) => {
-        const v = Number(p.newValue);
-        if (Number.isNaN(v) || v < 0) return false;
-        p.data.precioUnitario = v;
-        p.data.precioTotal = v * (p.data.cantidad || 0);
-        renderResumenFinanciero(calcularFinanzas());
-        return true;
-      },
     },
     {
-      headerName: "Subtotal",
+      headerName: "SUBTOTAL",
+      colId: "subtotal",
+      minWidth: 130,
+      maxWidth: 130,
+      sortable: true,
+      resizable: false,
       valueGetter: (p) =>
-        p.data.producto?.regalo
+        p.data.esRegalo
           ? null
           : (p.data.cantidad || 0) * (p.data.precioUnitario || 0),
       width: 150,
       cellRenderer: (p) =>
-        p.data.producto?.regalo
+        p.data.esRegalo
           ? `<span class="text-gray-400">----</span>`
           : `S/ ${(p.value ?? 0).toFixed(2)}`,
     },
     {
       headerName: "Acción",
-      width: 130,
+      field: "accion",
+      flex: 1, // ← esto hace que se estire hasta el borde derecho
+      minWidth: 130, // evita que se haga demasiado pequeña
+      sortable: false,
+      resizable: false,
+
+      cellClass: "flex items-center justify-start",
+      // 👆 Centrado vertical y alineado a la izquierda
+
       cellRenderer: () => `
-          <button class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">
-            <i class="fa-solid fa-trash"></i> Eliminar
-          </button>
-        `,
+    <div class="flex items-center justify-start gap-3 h-full pl-3">
+      <button 
+        data-action="view"
+        class="text-blue-600 hover:text-blue-700 text-xl"
+        title="Ver imagen"
+      >
+        <i class="fa-solid fa-image"></i>
+      </button>
+
+      <button 
+        data-action="delete"
+        class="text-red-500 hover:text-red-600 text-xl"
+        title="Eliminar"
+      >
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </div>
+  `,
     },
   ];
 
@@ -358,17 +650,23 @@ function initGridProductos(detalles) {
     rowData: detalles,
     domLayout: "autoHeight",
     defaultColDef: { resizable: true, sortable: true },
+
+    enableCellTextSelection: true,
+    suppressRowClickSelection: true,
+
     onCellClicked: (event) => {
       if (
         event.colDef.headerName === "Acción" &&
         event.event.target.closest("button")
       ) {
-        eliminarRegalo(event.node);
+        const btn = event.event.target.closest("button");
+        const action = btn.dataset.action;
+        if (action === "delete") eliminarRegalo(event.node);
+        if (action === "view") abrirModalDetalleProducto(event.data);
       }
     },
     getRowStyle: (params) => {
-      if (params.data?.producto?.regalo)
-        return { backgroundColor: "#676ce940" }; // celeste
+      if (params.data?.esRegalo) return { backgroundColor: "#676ce940" };
       return null;
     },
   };
@@ -376,6 +674,27 @@ function initGridProductos(detalles) {
   const gridEl = document.querySelector("#detallePedidoGrid");
   new agGrid.Grid(gridEl, gridOptions);
   console.log("AG Grid inicializado con", detalles.length, "filas");
+  reordenarFilasGrid();
+}
+
+function reordenarFilasGrid() {
+  if (!gridOptions?.api) return;
+
+  const rows = [];
+  gridOptions.api.forEachNode((n) => rows.push(n.data));
+
+  rows.sort((a, b) => {
+    const ra = a.esRegalo ? 1 : 0;
+    const rb = b.esRegalo ? 1 : 0;
+
+    // normales (0) primero, regalos (1) al final
+    if (ra !== rb) return ra - rb;
+
+    // si quieres mantener el orden original, no hagas más comparación
+    return 0;
+  });
+
+  gridOptions.api.setRowData(rows);
 }
 
 function eliminarRegalo(rowNode) {
@@ -389,6 +708,7 @@ function eliminarRegalo(rowNode) {
   }).then((r) => {
     if (r.isConfirmed && gridOptions?.api) {
       gridOptions.api.applyTransaction({ remove: [rowNode.data] });
+      reordenarFilasGrid();
       renderResumenFinanciero(calcularFinanzas());
       Swal.fire("Eliminado", "El producto fue eliminado", "success");
     }
@@ -401,7 +721,8 @@ function abrirModalAgregar() {
   const toggle = document.getElementById("toggleRegalo");
   const toggleCircle = document.getElementById("toggleCircle");
   const toggleSwitch = document.getElementById("toggleSwitch");
-  const select = document.getElementById("selectProducto");
+  const inputBusqueda = document.getElementById("inputBuscarProducto");
+  const listaSugerencias = document.getElementById("listaSugerenciasProductos");
   const inputCantidad = document.getElementById("inputCantidad");
 
   if (!productosNormales.length && !productosRegalo.length) {
@@ -409,28 +730,156 @@ function abrirModalAgregar() {
     return;
   }
 
-  const llenarSelect = (esRegalo) => {
-    select.innerHTML = `<option value="">Seleccione un producto</option>`;
-    const lista = esRegalo ? productosRegalo : productosNormales;
-    lista.forEach((p) => {
-      const opt = document.createElement("option");
-      opt.value = p.idProducto;
-      opt.textContent = `${p.codProducto} - ${p.descProducto}`;
-      select.appendChild(opt);
-    });
+  // 🔹 Reset selección
+  productoSeleccionado = null;
+  varianteSeleccionada = null;
+  inputBusqueda.value = "";
+  inputCantidad.value = 1;
+
+  // 🔹 Helper: obtiene la lista base (normal/regalo)
+  const getListaBase = (esRegalo) =>
+    esRegalo ? productosRegalo : productosNormales;
+
+  // 🔹 Render del dropdown
+  const renderSugerencias = (termino = "") => {
+    const esRegalo = toggle.checked;
+    const lista = getListaBase(esRegalo);
+    const term = termino.trim().toLowerCase();
+
+    // Si no hay texto, mostramos máximo 20 productos/variantes
+    const maxItems = 30;
+
+    let html = "";
+
+    let count = 0;
+    for (const prod of lista) {
+      const variantes =
+        prod.variante && prod.variante.length ? prod.variante : [null]; // si no tiene variantes, tratamos al producto como una sola opción
+
+      // ¿Hay al menos una variante que matchee filtro?
+      const variantesFiltradas = variantes.filter((v) => {
+        const textProducto = (prod.descProducto || "").toLowerCase();
+        const textVariante = (v?.titulo || "").toLowerCase();
+        const codProducto = (prod.codProducto || "").toLowerCase();
+        const codVariante = (v?.codVariante || "").toLowerCase();
+
+        if (!term) return true; // sin filtro, mostrar todo
+
+        return (
+          textProducto.includes(term) ||
+          textVariante.includes(term) ||
+          codProducto.includes(term) ||
+          codVariante.includes(term)
+        );
+      });
+
+      if (!variantesFiltradas.length) continue;
+
+      // Header del producto
+      html += `
+        <div class="px-3 pt-2 pb-1 text-[11px] font-semibold text-gray-500 uppercase border-t border-gray-100 first:border-t-0 bg-gray-50">
+          ${prod.codProducto || ""} - ${
+        prod.descProducto || "Producto sin nombre"
+      }
+        </div>
+      `;
+
+      // Variantes
+      for (const v of variantesFiltradas) {
+        if (count >= maxItems) break;
+
+        const titulo =
+          v?.titulo || v?.codVariante || "Variante única / Sin título";
+
+        html += `
+          <button
+            type="button"
+            class="w-full text-left px-3 py-2 text-sm hover:bg-purple-50 flex flex-col gap-0.5"
+            data-cod-producto="${prod.codProducto || ""}"
+            data-cod-variante="${v?.codVariante || ""}"
+          >
+            <span class="text-[13px] text-gray-800">${titulo}</span>
+            ${
+              v?.codVariante
+                ? `<span class="text-[11px] text-gray-500">Variante: ${v.codVariante}</span>`
+                : ""
+            }
+          </button>
+        `;
+
+        count++;
+      }
+
+      if (count >= maxItems) break;
+    }
+
+    if (!html) {
+      html =
+        '<div class="px-3 py-2 text-sm text-gray-500">Sin resultados para tu búsqueda.</div>';
+    }
+
+    listaSugerencias.innerHTML = html;
+    listaSugerencias.classList.remove("hidden");
   };
 
+  // 🔹 Eventos del input
+  inputBusqueda.oninput = (e) => {
+    productoSeleccionado = null;
+    varianteSeleccionada = null;
+    renderSugerencias(e.target.value);
+  };
+
+  inputBusqueda.onfocus = () => {
+    renderSugerencias(inputBusqueda.value);
+  };
+
+  // 🔹 Click en una sugerencia
+  listaSugerencias.onclick = (e) => {
+    const btn = e.target.closest("button[data-cod-producto]");
+    if (!btn) return;
+
+    const codProducto = btn.dataset.codProducto;
+    const codVariante = btn.dataset.codVariante;
+
+    const esRegalo = toggle.checked;
+    const lista = getListaBase(esRegalo);
+
+    const prod = lista.find((p) => p.codProducto === codProducto);
+    if (!prod) return;
+
+    let variante = null;
+    if (codVariante) {
+      variante = (prod.variante || []).find(
+        (v) => v.codVariante === codVariante
+      );
+    }
+
+    productoSeleccionado = prod;
+    varianteSeleccionada = variante || null;
+
+    const textoVar =
+      varianteSeleccionada?.titulo || varianteSeleccionada?.codVariante || "";
+    inputBusqueda.value = `${prod.codProducto || ""} - ${
+      prod.descProducto || "Producto"
+    }${textoVar ? " | " + textoVar : ""}`;
+
+    listaSugerencias.classList.add("hidden");
+  };
+
+  // 🔹 Toggle Normal / Regalo
   toggle.onchange = () => {
     const esRegalo = toggle.checked;
     toggleCircle.style.transform = esRegalo
       ? "translateX(20px)"
       : "translateX(0px)";
     toggleSwitch.style.backgroundColor = esRegalo ? "#3b82f6" : "#d1d5db";
-    inputCantidad.value = 1;
-    llenarSelect(esRegalo);
 
-    const lista = esRegalo ? productosRegalo : productosNormales;
-    renderCustomSelect(lista);
+    // Reset selección al cambiar tipo
+    productoSeleccionado = null;
+    varianteSeleccionada = null;
+    inputBusqueda.value = "";
+    inputCantidad.value = 1;
+    renderSugerencias("");
   };
 
   // Estado inicial
@@ -439,37 +888,46 @@ function abrirModalAgregar() {
   modal.classList.remove("hidden");
   modal.classList.add("flex");
 
+  // Botón cancelar
   document.getElementById("btnCancelarAgregar").onclick = () => {
     modal.classList.add("hidden");
     modal.classList.remove("flex");
   };
 
+  // 🔹 Botón confirmar
   document.getElementById("btnConfirmarAgregar").onclick = () => {
-    const idProducto = Number(select.value);
     const cantidad = Number(inputCantidad.value) || 1;
     const esRegalo = toggle.checked;
 
-    if (!idProducto) {
-      Swal.fire("Selecciona un producto", "", "warning");
+    if (!productoSeleccionado) {
+      Swal.fire("Selecciona un producto / variante", "", "warning");
       return;
     }
 
-    const prod = (esRegalo ? productosRegalo : productosNormales).find(
-      (p) => p.idProducto === idProducto
-    );
-    if (!prod) {
-      Swal.fire("Producto no encontrado", "", "error");
-      return;
-    }
+    const prod = productoSeleccionado;
+    const variante = varianteSeleccionada;
 
-    // Unificar si ya existe
+    // Precio: sacamos de la variante si tiene, si no del producto
+    const precioBase = esRegalo ? 0 : variante?.precio ?? prod.precio ?? 0;
+
+    const precioUnitario = precioBase;
+    const precioTotal = precioUnitario * cantidad;
+
+    // Unificar si ya existe misma combinación producto+variante+regalo
     const filas = [];
     gridOptions.api.forEachNode((n) => filas.push(n.data));
-    const existente = filas.find(
-      (r) =>
-        r.producto.idProducto === idProducto &&
-        !!r.producto.regalo === !!esRegalo
-    );
+
+    const existente = filas.find((r) => {
+      const codP = r.codProducto || r.producto?.codProducto;
+      const codV = r.codVariante || r.variante?.codVariante;
+
+      return (
+        codP === prod.codProducto &&
+        (codV || "") === (variante?.codVariante || "") &&
+        !!(r.esRegalo || r.regalo) === !!esRegalo
+      );
+    });
+
     if (existente) {
       existente.cantidad += cantidad;
       existente.precioTotal =
@@ -479,15 +937,20 @@ function abrirModalAgregar() {
       gridOptions.api.applyTransaction({
         add: [
           {
-            producto: prod,
+            variante: variante || {},
+            codProducto: prod.codProducto,
+            codVariante: variante?.codVariante || null,
+            nombreProducto: prod.descProducto || variante?.titulo || "Producto",
             cantidad,
-            precioUnitario: prod.precio || 0,
-            precioTotal: (prod.precio || 0) * cantidad,
+            precioUnitario,
+            precioTotal,
+            esRegalo: esRegalo,
           },
         ],
       });
     }
 
+    reordenarFilasGrid();
     renderResumenFinanciero(calcularFinanzas());
 
     modal.classList.add("hidden");
@@ -502,58 +965,176 @@ function abrirModalAgregar() {
       toast: true,
     });
   };
+
+  // 🔹 Cerrar sugerencias si se hace clic fuera del input/lista
+  const handleClickOutsideSugerencias = (e) => {
+    if (!listaSugerencias.contains(e.target) && e.target !== inputBusqueda) {
+      listaSugerencias.classList.add("hidden");
+    }
+  };
+
+  // lo registramos sin "once"
+  document.addEventListener("click", handleClickOutsideSugerencias);
 }
+
+// ======================= MODAL DETALLE PRODUCTO =======================
+function abrirModalDetalleProducto(row) {
+  const modal = document.getElementById("modalDetalleProducto");
+  const imgEl = document.getElementById("detalleProdImagen");
+  const nombreEl = document.getElementById("detalleProdNombre");
+  const varianteEl = document.getElementById("detalleProdVariante");
+
+  const prod = row.producto || {};
+  const variante = row.variante || {};
+
+  // 👀 Nombre completo (el mismo que sale en la columna DESCRIPCIÓN)
+  const nombre =
+    row.nombreProducto || prod.descProducto || "Producto sin nombre";
+
+  // Texto de variante / código
+  const textoVariante =
+    variante.titulo ||
+    row.tituloVariante ||
+    variante.codVariante ||
+    row.codVariante ||
+    "";
+
+  // primero variante, luego fallback
+  const imgUrl = variante.imgVariante || row.imgVariante || "/img/no-image.png";
+
+  imgEl.src = imgUrl;
+  imgEl.onerror = () => {
+    imgEl.src = "/recursos/img/no-image.png";
+  };
+
+  nombreEl.textContent = nombre;
+  varianteEl.textContent = textoVariante
+    ? `Variante: ${textoVariante}`
+    : "Sin variante específica";
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+// Cerrar con botón ✖
+document
+  .getElementById("btnCerrarDetalleProducto")
+  ?.addEventListener("click", () => {
+    const modal = document.getElementById("modalDetalleProducto");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  });
+
+// Cerrar haciendo click en el fondo oscuro
+document
+  .getElementById("modalDetalleProducto")
+  ?.addEventListener("click", (e) => {
+    if (e.target.id === "modalDetalleProducto") {
+      e.currentTarget.classList.add("hidden");
+      e.currentTarget.classList.remove("flex");
+    }
+  });
 
 // ======================= EVIDENCIA + PAGO =======================
 function initEvidencia() {
   const inputComprobante = document.getElementById("inputComprobante");
-  const preview = document.getElementById("previewComprobante");
+  if (!inputComprobante) return;
 
-  inputComprobante?.addEventListener("change", (e) => {
-    const file = e.target.files?.[0];
-    pedidoActual.evidenciaFile = file || null;
+  // aseguramos el array
+  if (!pedidoActual.evidenciasFiles) {
+    pedidoActual.evidenciasFiles = [];
+  }
 
-    if (!file) {
-      preview.innerHTML = "Ningún archivo seleccionado";
-      return;
+  // cuando el usuario elige archivos con el diálogo
+  inputComprobante.addEventListener("change", (e) => {
+    const files = e.target.files;
+    if (!files || !files.length) return;
+
+    for (const f of files) {
+      if (!f.type.startsWith("image/")) continue;
+      pedidoActual.evidenciasFiles.push(f);
     }
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      preview.innerHTML = `
-        <div class="flex flex-col items-center justify-center mx-auto my-3 p-3 rounded-lg shadow-md border border-gray-300 bg-white group hover:scale-105 transition">
-          <div class="relative inline-block">
-            <img src="${ev.target.result}" class="max-h-64 w-auto rounded-md shadow-sm object-contain mx-auto" />
-            <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition"
-                 onclick="document.getElementById('inputComprobante').click()">
-              <i class="fas fa-sync-alt text-white text-3xl mb-2"></i>
-            </div>
-          </div>
-          <p class="text-sm text-gray-500 mt-2">${file.name}</p>
-        </div>
-      `;
-    };
+    renderPreviewEvidencias();
 
-    reader.readAsDataURL(file);
+    // limpiar para poder volver a elegir los mismos archivos
+    inputComprobante.value = "";
+  });
+
+  // pegar desde portapapeles (Ctrl+V)
+  document.addEventListener("paste", (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    let added = false;
+    for (const item of items) {
+      if (item.type && item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          pedidoActual.evidenciasFiles.push(file);
+          added = true;
+        }
+      }
+    }
+
+    if (added) {
+      renderPreviewEvidencias();
+    }
   });
 }
 
 function initPago() {
   const inputAdelanto = document.getElementById("montoAdelanto");
 
-  inputAdelanto?.addEventListener("input", () => {
-    const { total } = calcularFinanzas();
-    let valor = Number(inputAdelanto.value) || 0;
+  if (!inputAdelanto) return;
 
-    // 🔒 No permitir que coloque más del total
-    if (valor > total) {
-      valor = total;
-      inputAdelanto.value = total.toFixed(2); // reajusta automáticamente
+  // Mientras escribe
+  inputAdelanto.addEventListener("input", (e) => {
+    let v = e.target.value;
+
+    // SOLO números y punto
+    v = v.replace(/[^\d.]/g, "");
+
+    // Solo un punto decimal
+    const parts = v.split(".");
+    if (parts.length > 2) {
+      v = parts[0] + "." + parts.slice(1).join("");
     }
 
-    estadoAdelanto = true;
-    montoAdelanto = valor;
+    // Limitar a 2 decimales
+    if (parts[1]?.length > 2) {
+      v = parts[0] + "." + parts[1].slice(0, 2);
+    }
 
+    e.target.value = v;
+  });
+
+  // Al salir del input
+  inputAdelanto.addEventListener("blur", () => {
+    let value = parseFloat(inputAdelanto.value);
+    const { total } = calcularFinanzas();
+
+    // Si está vacío o inválido
+    if (isNaN(value)) {
+      inputAdelanto.value = "";
+      montoAdelanto = 0;
+      renderResumenFinanciero(calcularFinanzas());
+      return;
+    }
+
+    // 🔥 No permitir adelanto mayor al total
+    if (value > total) {
+      value = total;
+    }
+
+    // Redondear a 2 decimales
+    value = Number(value.toFixed(2));
+
+    inputAdelanto.value = value.toFixed(2);
+    montoAdelanto = value;
+
+    // Actualizar UI
+    estadoAdelanto = true;
     renderResumenFinanciero(calcularFinanzas());
   });
 }
@@ -563,7 +1144,7 @@ function calcularFinanzas() {
   const rows = [];
   gridOptions.api.forEachNode((n) => rows.push(n.data));
 
-  const normales = rows.filter((r) => !r.producto?.regalo);
+  const normales = rows.filter((r) => !r.esRegalo);
 
   const subtotal = normales.reduce(
     (acc, it) => acc + (it.cantidad || 0) * (it.precioUnitario || 0),
@@ -573,11 +1154,8 @@ function calcularFinanzas() {
   const igv = subtotal * 0.18;
   const total = subtotal;
 
-  const adelanto =
-    estadoAdelanto === false ? total : Number(montoAdelanto || 0);
-
-  console.log("💰 calcularFinanzas:", { subtotal, igv, total, adelanto });
-  return { subtotal, igv, total, adelanto };
+  console.log("💰 calcularFinanzas:", { subtotal, igv, total });
+  return { subtotal, igv, total };
 }
 
 function selectCard(card, amountId, showAmount) {
@@ -640,48 +1218,48 @@ function selectCard(card, amountId, showAmount) {
 }
 
 async function cargarSelectsPedido(pedido = {}) {
-  // === Empresa Entrega ===
-  try {
-    const resEmp = await fetch("/api/empresas-entrega");
-    const empresas = await resEmp.json();
+  // Normalizar lo que viene del backend
+  const tipoPagoPedido = (pedido.tipoPago ?? pedido.tipo_pago ?? "")
+    .toString()
+    .trim()
+    .toUpperCase();
 
-    const selectEmp = document.getElementById("pedidoEmpresaEntrega");
-    selectEmp.innerHTML = `<option value="">Seleccionar empresa</option>`;
-    empresas.forEach((e) => {
-      const opt = document.createElement("option");
-      opt.value = e.idEmpresaEntrega;
-      opt.textContent = e.razonSocial;
-      if (pedido.empresaEntrega?.idEmpresaEntrega === e.idEmpresaEntrega)
-        opt.selected = true;
-      selectEmp.appendChild(opt);
-    });
-  } catch (err) {
-    console.error("Error al cargar empresas de entrega:", err);
-  }
+  const tipoComprobantePedido = (
+    pedido.tipoComprobante ??
+    pedido.tipo_comprobante ??
+    ""
+  )
+    .toString()
+    .trim()
+    .toUpperCase();
 
   // === Tipo de Pago ===
-  const tiposPago = ["Transferencia", "Yape", "Efectivo", "Plin"];
+  const tiposPago = ["TRANSFERENCIA", "YAPE", "EFECTIVO", "PLIN"];
   const selectPago = document.getElementById("pedidoTipoPago");
-  selectPago.innerHTML = `<option value="">Seleccionar tipo</option>`;
-  tiposPago.forEach((t) => {
-    const opt = document.createElement("option");
-    opt.value = t;
-    opt.textContent = t;
-    if (pedido.tipoPago === t) opt.selected = true;
-    selectPago.appendChild(opt);
-  });
+  if (selectPago) {
+    selectPago.innerHTML = `<option value="">Seleccionar tipo</option>`;
+    tiposPago.forEach((t) => {
+      const opt = document.createElement("option");
+      opt.value = t;
+      opt.textContent = t;
+      if (t === tipoPagoPedido) opt.selected = true;
+      selectPago.appendChild(opt);
+    });
+  }
 
   // === Tipo de Comprobante ===
   const tiposComprobante = ["BOLETA", "FACTURA"];
   const selectComp = document.getElementById("pedidoComprobante");
-  selectComp.innerHTML = `<option value="">Seleccionar comprobante</option>`;
-  tiposComprobante.forEach((t) => {
-    const opt = document.createElement("option");
-    opt.value = t;
-    opt.textContent = t;
-    if (pedido.tipoComprobante === t) opt.selected = true;
-    selectComp.appendChild(opt);
-  });
+  if (selectComp) {
+    selectComp.innerHTML = `<option value="">Seleccionar comprobante</option>`;
+    tiposComprobante.forEach((t) => {
+      const opt = document.createElement("option");
+      opt.value = t;
+      opt.textContent = t;
+      if (t === tipoComprobantePedido) opt.selected = true;
+      selectComp.appendChild(opt);
+    });
+  }
 }
 
 // ========= VALIDACIONES =========
@@ -689,72 +1267,101 @@ function validarCamposObligatorios() {
   let valido = true;
   let primerError = null;
 
-  // === Lista de campos obligatorios ===
-  const campos = [
-    { id: "pedidoComprobante", nombre: "Tipo de Comprobante" },
+  // === 1. Campos de texto / selects obligatorios ===
+  // (OJO: Tipo de comprobante NO va aquí)
+  const camposObligatorios = [
+    { id: "clienteDni", nombre: "DNI" },
+    { id: "clienteNombre", nombre: "Cliente" },
+    { id: "clienteTelefono", nombre: "Teléfono" },
+    { id: "clienteDireccion", nombre: "Dirección" },
+    { id: "clienteCiudad", nombre: "Ciudad del cliente" },
+    { id: "clienteProvincia", nombre: "Provincia" },
+
     { id: "pedidoTipoPago", nombre: "Tipo de Pago" },
-    { id: "pedidoCiudad", nombre: "Ciudad" },
-    { id: "pedidoEmpresaEntrega", nombre: "Empresa de Entrega" },
+    { id: "pedidoCiudad", nombre: "Ciudad del pedido" },
   ];
 
-  campos.forEach((c) => {
+  camposObligatorios.forEach((c) => {
     const el = document.getElementById(c.id);
-    el.classList.remove("border-red-500", "animate-shake");
+    limpiarErrorCampo(el);
 
-    if (!el.value || el.value.trim() === "") {
+    if (!el) return;
+
+    const valor = (el.value || "").trim();
+    if (!valor) {
       valido = false;
-      el.classList.add("border-red-500", "animate-shake");
+      marcarErrorCampo(el);
       if (!primerError) primerError = el;
     }
   });
 
-  // === Validar monto adelantado ===
+  // === 2. Validar monto adelantado (si corresponde) ===
   if (estadoAdelanto === true) {
-    const monto = document.getElementById("montoAdelanto");
-    monto.classList.remove("border-red-500", "animate-shake");
+    const montoInput = document.getElementById("montoAdelanto");
+    limpiarErrorCampo(montoInput);
 
-    if (Number(monto.value) <= 0) {
+    // Texto a número con reemplazo de coma a punto
+    const valorNum = parseFloat(
+      (montoInput.value || "0").toString().replace(",", ".")
+    );
+
+    const { total } = calcularFinanzas();
+
+    if (isNaN(valorNum) || valorNum <= 0 || valorNum > total) {
       valido = false;
-      monto.classList.add("border-red-500", "animate-shake");
-      if (!primerError) primerError = monto;
+      marcarErrorCampo(montoInput);
+      if (!primerError) primerError = montoInput;
     }
   }
 
-  // === Validar productos ===
+  // === 3. Validar que exista al menos 1 producto en el grid ===
   const rows = [];
-  gridOptions.api.forEachNode((n) => rows.push(n.data));
+  if (gridOptions?.api) {
+    gridOptions.api.forEachNode((n) => rows.push(n.data));
+  }
 
   if (rows.length === 0) {
-    Swal.fire("Pedido vacío", "Debe agregar al menos un producto.", "warning");
-    return false;
-  }
-
-  // === Validar evidencia ===
-  const evidenciaNueva = pedidoActual.evidenciaFile;
-  const evidenciaPrevia = document
-    .getElementById("previewComprobante")
-    ?.querySelector("img");
-
-  const evidenciaBox = document.getElementById("evidenciaContainer");
-  evidenciaBox.classList.remove("border-red-500", "animate-shake");
-
-  if (!evidenciaNueva && !evidenciaPrevia) {
     valido = false;
-    evidenciaBox.classList.add("border-red-500", "animate-shake");
-    if (!primerError) primerError = evidenciaBox;
+    // marcamos visualmente la tabla (borde rojo en el contenedor)
+    const gridEl = document.getElementById("detallePedidoGrid");
+    if (gridEl) {
+      gridEl.classList.add("border-2", "border-red-500", "animate-shake");
+      setTimeout(() => {
+        gridEl.classList.remove("border-red-500", "animate-shake");
+      }, 600);
+    }
+    if (!primerError && gridEl) primerError = gridEl;
   }
 
-  // === Mostrar alerta si algo falta ===
+  // === 4. Validar evidencia: debe haber al menos una imagen ===
+  const evidenciaBox = document.getElementById("evidenciaContainer");
+  if (evidenciaBox) {
+    evidenciaBox.classList.remove("border-red-500", "animate-shake");
+  }
+
+  // 1) imágenes que ya están renderizadas (de BD o nuevas)
+  const hayImgEnPreview = !!document.querySelector("#previewComprobante img");
+
+  // 2) nuevas imágenes en esta sesión (si estás usando pedidoActual.evidenciasFiles)
+  const hayNuevasEvidencias =
+    Array.isArray(pedidoActual.evidenciasFiles) &&
+    pedidoActual.evidenciasFiles.length > 0;
+
+  if (!hayImgEnPreview && !hayNuevasEvidencias) {
+    valido = false;
+    if (evidenciaBox) {
+      evidenciaBox.classList.add("border-red-500", "animate-shake");
+      if (!primerError) primerError = evidenciaBox;
+    }
+  }
+
+  // === 5. Si algo está mal, mostramos alerta y hacemos scroll al primer error ===
   if (!valido) {
     Swal.fire({
       icon: "warning",
       title: "Campos incompletos",
-      text: "Por favor completa todos los campos obligatorios.",
+      text: "Por favor completa todos los campos obligatorios, agrega al menos un producto y una imagen de comprobante.",
     });
-
-    if (primerError) {
-      primerError.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
 
     return false;
   }
@@ -762,19 +1369,35 @@ function validarCamposObligatorios() {
   return true;
 }
 
+function marcarErrorCampo(el) {
+  if (!el) return;
+  el.classList.add("border-red-500", "animate-shake");
+}
+
+function limpiarErrorCampo(el) {
+  if (!el) return;
+  el.classList.remove("border-red-500", "animate-shake");
+}
+
 // ========= GUARDAR =========
-async function onGuardarPedido() {
+async function onGuardarPedido(esAprobacion = false) {
   console.group("[onGuardarPedido]");
 
-  const { total } = calcularFinanzas();
+  const { subtotal, igv, total } = calcularFinanzas();
+  const subtotalSinIgv = subtotal - igv;
 
-  if (!validarCamposObligatorios()) return;
-  if (estadoAdelanto && montoAdelanto > total) {
+  if (!validarCamposObligatorios()) {
+    console.groupEnd();
+    return;
+  }
+
+  if (estadoAdelanto && Number(montoAdelanto || 0) > total) {
     Swal.fire({
       icon: "error",
       title: "Adelanto inválido",
-      text: "El adelanto no puede ser mayor al total del pedido.",
+      text: "El adelanto no puede ser mayor al monto total del pedido.",
     });
+    console.groupEnd();
     return;
   }
 
@@ -785,93 +1408,149 @@ async function onGuardarPedido() {
         "No se encontró el COD del pedido.",
         "warning"
       );
+      console.groupEnd();
       return;
     }
 
-    // 🔹 Recolectar filas actuales desde el grid
-    const detalles = [];
-    gridOptions.api.forEachNode((n) => {
-      const row = n.data;
-      const esRegalo = !!row.producto?.regalo;
+    // estado del pedido
+    const estadoFinal = esAprobacion ? 2 : 1;
 
+    // 1) Cliente
+    const clienteActualizado = {
+      codCliente: pedidoActual.codCliente,
+      dni: document.getElementById("clienteDni").value,
+      nombres: document.getElementById("clienteNombre").value,
+      telefono: document.getElementById("clienteTelefono").value,
+      direccion: document.getElementById("clienteDireccion").value,
+      ciudad: document.getElementById("clienteCiudad").value,
+      provincia: document.getElementById("clienteProvincia").value,
+    };
+
+    // 2) Detalles desde el grid
+    const detalles = [];
+    const filas = [];
+    gridOptions.api.forEachNode((n) => filas.push(n.data));
+
+    filas.forEach((row) => {
+      const esRegalo = !!row.esRegalo;
       const precioUnitario = esRegalo ? 0 : row.precioUnitario || 0;
       const precioTotal = esRegalo ? 0 : (row.cantidad || 0) * precioUnitario;
 
       detalles.push({
         idDetallePedido: row.idDetallePedido || 0,
         codPedido: pedidoActual.codPedido,
-
-        // 🔥 ESTOS 3 SON LOS NUEVOS CAMPOS IMPORTANTES
-        codProducto: row.codProducto || null,
-        codVariante: row.codVariante || null,
-        nombreProducto: row.nombreProducto || null,
-
+        codProducto: row.codProducto || row.producto?.codProducto || null,
+        variante: {
+          codVariante: row.codVariante || row.variante?.codVariante || null,
+        },
+        nombreProducto:
+          row.nombreProducto ||
+          row.producto?.descProducto ||
+          row.variante?.titulo ||
+          null,
         cantidad: row.cantidad,
         precioUnitario,
         precioTotal,
-        regalo: esRegalo,
+        esRegalo: esRegalo,
       });
     });
 
-    // 🔹 Calcular totales reales (solo productos normales)
-    const itemsNormales = detalles.filter((r) => !r.producto?.regalo);
-    const subtotal = itemsNormales.reduce(
-      (acc, it) => acc + (it.cantidad || 0) * (it.precioUnitario || 0),
-      0
-    );
-    const igv = subtotal * 0.18;
-    const total = subtotal + igv;
+    // 3) Totales (sin IGV / con IGV)
+    const subtotalRed = Number(subtotalSinIgv.toFixed(2));
+    const igvRed = Number(igv.toFixed(2));
+    const totalRed = Number(total.toFixed(2));
 
-    // 🔹 Construir objeto pedido
+    // 4) Archivos nuevos seleccionados en esta sesión
+    const evidenciasNuevas =
+      Array.isArray(pedidoActual.evidenciasFiles) &&
+      pedidoActual.evidenciasFiles.length
+        ? pedidoActual.evidenciasFiles
+        : [];
+
+    // 5) Metadatos para el DTO: uno por cada archivo nuevo
+    const evidenciasPayload = evidenciasNuevas.map(() => ({
+      idEvidenciaPedido: null, // nuevo => sin ID
+      codPedido: pedidoActual.codPedido,
+      url: null,
+      motivo: "APROPACION",
+    }));
+
+    // Log
+    const usuarioSesion = JSON.parse(sessionStorage.getItem("usuario"));
+    const idUsuario = usuarioSesion.idUsuario;
+    const username = usuarioSesion.usuario;
+    const nombreCompleto = `${usuarioSesion.nombre} ${usuarioSesion.apPaterno} ${usuarioSesion.apMaterno}`;
+    const motivoGenerado = esAprobacion
+      ? `Pedido APROBADO por ${nombreCompleto} (${username}, id=${idUsuario})`
+      : `Actualización del pedido por ${nombreCompleto} (${username}, id=${idUsuario})`;
+
+    const logNuevo = {
+      idUsuario: idUsuario,
+      codPedido: pedidoActual.codPedido,
+      idEstadoP: estadoFinal,
+      motivoLog: motivoGenerado,
+    };
+
+    // 6) Objeto pedido que espera el backend
     const pedido = {
       codPedido: pedidoActual.codPedido,
-      documento: document.getElementById("pedidoDocumento").value || null,
+      documento: document.getElementById("pedidoDocumento")?.value || null,
+
       estadoPedido: {
-        idEstadoPedido: 2, // Mantener el estado actual (no se edita aquí)
+        idEstadoPedido: estadoFinal,
       },
+
       tipoComprobante:
         document.getElementById("pedidoComprobante").value || null,
       tipoPago: document.getElementById("pedidoTipoPago").value || null,
       ciudad: document.getElementById("pedidoCiudad").value || null,
+      observacion: document.getElementById("pedidoObservaciones").value || null,
+
       empresaEntrega: {
-        idEmpresaEntrega:
-          Number(document.getElementById("pedidoEmpresaEntrega").value) || null,
+        idEmpresaEntrega: 1,
       },
 
-      subtotal: Number(subtotal.toFixed(2)),
-      igv: Number(igv.toFixed(2)),
-      montoTotal: Number(total.toFixed(2)),
-      adelanto: estadoAdelanto,
-      montoAdelanto: montoAdelanto,
+      subtotal: subtotalRed,
+      igv: igvRed,
+      montoTotal: totalRed,
 
+      adelanto: estadoAdelanto,
+      montoAdelanto: Number(montoAdelanto || 0),
+
+      cliente: clienteActualizado,
       detalles,
+      evidencias: evidenciasPayload,
+      evidenciasEliminar: pedidoActual.evidenciasEliminar || [],
+      logNuevo,
     };
 
-    console.log("Pedido a enviar:", pedido);
-
-    // 🔹 Construir FormData (pedido + evidencia opcional)
+    // 7) Armar FormData: JSON + archivos
     const formData = new FormData();
     formData.append(
       "pedido",
       new Blob([JSON.stringify(pedido)], { type: "application/json" })
     );
-    if (pedidoActual.evidenciaFile) {
-      formData.append("file", pedidoActual.evidenciaFile);
-      console.log("Evidencia adjunta:", pedidoActual.evidenciaFile.name);
-    } else {
-      console.log("Sin evidencia (file no adjunto)");
-    }
 
-    // 🔹 Envío al backend
-    const url = ENDPOINT_GUARDAR;
-    console.log("[POST] Enviando a:", url);
-    const resp = await fetch(url, { method: "POST", body: formData });
+    evidenciasNuevas.forEach((file) => {
+      formData.append("evidencias", file);
+    });
+
+    console.log("PAYLOAD ENVIADO:", JSON.stringify(pedido, null, 2));
+
+    // 8) POST al endpoint
+    const resp = await fetch(ENDPOINT_GUARDAR, {
+      method: "POST",
+      body: formData,
+    });
 
     const rawText = await resp.text();
     let data = null;
     try {
       data = rawText ? JSON.parse(rawText) : null;
-    } catch {}
+    } catch {
+      data = null;
+    }
+
     console.log("[RESP GUARDAR]", {
       status: resp.status,
       ok: resp.ok,
@@ -879,19 +1558,28 @@ async function onGuardarPedido() {
       data,
     });
 
-    if (!resp.ok)
-      throw new Error(data?.message || rawText || `HTTP ${resp.status}`);
+    if (!resp.ok) {
+      throw new Error(data?.message || rawText || `Error HTTP ${resp.status}`);
+    }
 
     Swal.fire({
       icon: "success",
-      title: "Pedido guardado",
-      text: "Los cambios fueron registrados correctamente.",
+      title: esAprobacion ? "Pedido aprobado" : "Pedido guardado",
       timer: 2200,
       showConfirmButton: false,
     });
+
+    // limpiar archivos nuevos y lista de eliminaciones
+    pedidoActual.evidenciasFiles = [];
+    pedidoActual.evidenciasEliminar = [];
+    renderPreviewEvidencias();
   } catch (err) {
-    console.error("❌ Error al guardar pedido:", err);
-    Swal.fire("Error al guardar", err.message || "Fallo desconocido", "error");
+    console.error("Error al guardar pedido:", err);
+    Swal.fire(
+      "Error al guardar",
+      err.message || "Fallo desconocido en el guardado",
+      "error"
+    );
   } finally {
     console.groupEnd();
   }

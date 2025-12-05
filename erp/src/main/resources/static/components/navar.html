@@ -1,10 +1,22 @@
-<div class="w-64 h-screen bg-gradient-to-b from-aliva-purple to-aliva-blue text-white flex flex-col">
+<div
+  class="w-64 h-screen bg-gradient-to-b from-aliva-purple to-aliva-blue text-white flex flex-col"
+>
   <!-- Logo -->
   <div class="p-4">
     <div class="flex items-center gap-3 mb-4">
       <button class="p-2 hover:bg-white/10 rounded">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"
+          ></path>
         </svg>
       </button>
     </div>
@@ -24,17 +36,25 @@
       <!-- Inicio -->
       <li>
         <div id="inicio-container" class="rounded-lg">
-          <button onclick="toggleSubmenu('inicio')"
-            class="flex items-center justify-between w-full p-3 text-left text-white">
+          <button
+            onclick="toggleSubmenu('inicio')"
+            class="flex items-center justify-between w-full p-3 text-left text-white"
+          >
             <div class="flex items-center">
               <i class="fas fa-home mr-3"></i>
               <span>Inicio</span>
             </div>
-            <i class="fas fa-chevron-down transition-transform" id="inicio-arrow"></i>
+            <i
+              class="fas fa-chevron-down transition-transform"
+              id="inicio-arrow"
+            ></i>
           </button>
           <div id="inicio-submenu" class="pl-6 pb-2 hidden">
-            <a href="" id="inicio-link"
-              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20">
+            <a
+              href=""
+              id="inicio-link"
+              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20"
+            >
               Dashboard
             </a>
           </div>
@@ -44,17 +64,25 @@
       <!-- Reportería -->
       <li>
         <div id="reporteria-container" class="rounded-lg">
-          <button onclick="toggleSubmenu('reporteria')"
-            class="flex items-center justify-between w-full p-3 text-left text-white">
+          <button
+            onclick="toggleSubmenu('reporteria')"
+            class="flex items-center justify-between w-full p-3 text-left text-white"
+          >
             <div class="flex items-center">
               <i class="fas fa-chart-bar mr-3"></i>
               <span>Reportería</span>
             </div>
-            <i class="fas fa-chevron-down transition-transform" id="reporteria-arrow"></i>
+            <i
+              class="fas fa-chevron-down transition-transform"
+              id="reporteria-arrow"
+            ></i>
           </button>
           <div id="reporteria-submenu" class="pl-6 pb-2 hidden">
-            <a href="/reporteria/indicadores" id="reporteria-link"
-              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20">
+            <a
+              href="/reporteria/indicadores"
+              id="reporteria-link"
+              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20"
+            >
               Ver Reportes
             </a>
           </div>
@@ -64,17 +92,25 @@
       <!-- Clientes -->
       <li>
         <div id="clientes-container" class="rounded-lg">
-          <button onclick="toggleSubmenu('clientes')"
-            class="flex items-center justify-between w-full p-3 text-left text-white">
+          <button
+            onclick="toggleSubmenu('clientes')"
+            class="flex items-center justify-between w-full p-3 text-left text-white"
+          >
             <div class="flex items-center">
               <i class="fas fa-users mr-3"></i>
               <span>Clientes</span>
             </div>
-            <i class="fas fa-chevron-down transition-transform" id="clientes-arrow"></i>
+            <i
+              class="fas fa-chevron-down transition-transform"
+              id="clientes-arrow"
+            ></i>
           </button>
           <div id="clientes-submenu" class="pl-6 pb-2 hidden">
-            <a href="/clientes/listaClientes" id="clientes-link"
-              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20">
+            <a
+              href="/clientes/listaClientes"
+              id="clientes-link"
+              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20"
+            >
               Ver Clientes
             </a>
           </div>
@@ -84,26 +120,26 @@
       <!-- Pedidos -->
       <li>
         <div id="pedidos-container" class="rounded-lg">
-          <button onclick="toggleSubmenu('pedidos')"
-            class="flex items-center justify-between w-full p-3 text-left text-white">
+          <button
+            onclick="toggleSubmenu('pedidos')"
+            class="flex items-center justify-between w-full p-3 text-left text-white"
+          >
             <div class="flex items-center">
               <i class="fas fa-box mr-3"></i>
               <span>Pedidos</span>
             </div>
-            <i class="fas fa-chevron-down transition-transform" id="pedidos-arrow"></i>
+            <i
+              class="fas fa-chevron-down transition-transform"
+              id="pedidos-arrow"
+            ></i>
           </button>
           <div id="pedidos-submenu" class="pl-6 pb-2 hidden">
-            <a href="/pedidos/listaPedidos" id="pedidos-link1"
-              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20">
+            <a
+              href="/pedidos/listaPedidos"
+              id="pedidos-link1"
+              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20"
+            >
               Ver Pedidos
-            </a>
-            <a href="" id="pedidos-link2"
-              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20">
-              Estado Pedido
-            </a>
-            <a href="" id="pedidos-link3"
-              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20">
-              Pago Pedidos
             </a>
           </div>
         </div>
@@ -112,17 +148,25 @@
       <!-- Productos -->
       <li>
         <div id="productos-container" class="rounded-lg">
-          <button onclick="toggleSubmenu('productos')"
-            class="flex items-center justify-between w-full p-3 text-left text-white">
+          <button
+            onclick="toggleSubmenu('productos')"
+            class="flex items-center justify-between w-full p-3 text-left text-white"
+          >
             <div class="flex items-center">
               <i class="fas fa-warehouse mr-3"></i>
               <span>Productos</span>
             </div>
-            <i class="fas fa-chevron-down transition-transform" id="productos-arrow"></i>
+            <i
+              class="fas fa-chevron-down transition-transform"
+              id="productos-arrow"
+            ></i>
           </button>
           <div id="productos-submenu" class="pl-6 pb-2 hidden">
-            <a href="/productos/listaProductos" id="productos-link"
-              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20">
+            <a
+              href="/productos/listaProductos"
+              id="productos-link"
+              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20"
+            >
               Ver Productos
             </a>
           </div>
@@ -132,17 +176,25 @@
       <!-- Usuarios -->
       <li>
         <div id="usuarios-container" class="rounded-lg">
-          <button onclick="toggleSubmenu('usuarios')"
-            class="flex items-center justify-between w-full p-3 text-left text-white">
+          <button
+            onclick="toggleSubmenu('usuarios')"
+            class="flex items-center justify-between w-full p-3 text-left text-white"
+          >
             <div class="flex items-center">
               <i class="fas fa-user-shield mr-3"></i>
               <span>Usuarios</span>
             </div>
-            <i class="fas fa-chevron-down transition-transform" id="usuarios-arrow"></i>
+            <i
+              class="fas fa-chevron-down transition-transform"
+              id="usuarios-arrow"
+            ></i>
           </button>
           <div id="usuarios-submenu" class="pl-6 pb-2 hidden">
-            <a href="/usuarios/listaUsuarios" id="usuarios-link"
-              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20">
+            <a
+              href="/usuarios/listaUsuarios"
+              id="usuarios-link"
+              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20"
+            >
               Ver Usuarios
             </a>
           </div>
@@ -152,17 +204,25 @@
       <!-- Configuración -->
       <li>
         <div id="configuracion-container" class="rounded-lg">
-          <button onclick="toggleSubmenu('configuracion')"
-            class="flex items-center justify-between w-full p-3 text-left text-white">
+          <button
+            onclick="toggleSubmenu('configuracion')"
+            class="flex items-center justify-between w-full p-3 text-left text-white"
+          >
             <div class="flex items-center">
               <i class="fas fa-cog mr-3"></i>
               <span>Configuración</span>
             </div>
-            <i class="fas fa-chevron-down transition-transform" id="configuracion-arrow"></i>
+            <i
+              class="fas fa-chevron-down transition-transform"
+              id="configuracion-arrow"
+            ></i>
           </button>
           <div id="configuracion-submenu" class="pl-6 pb-2 hidden">
-            <a href="/configuracion/sincronizar" id="configuracion-link"
-              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20">
+            <a
+              href="/configuracion/sincronizar"
+              id="configuracion-link"
+              class="block p-2 mx-3 text-sm rounded-lg mb-1 transition-colors text-white font-semibold hover:bg-white/20"
+            >
               Sincronizaciones
             </a>
           </div>

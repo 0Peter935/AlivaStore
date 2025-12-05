@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ALIVA PERÚ - Dashboard</title>
+    <script src="/js/global-preload.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/tailwind-config.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"
+    />
+  </head>
+  <body class="h-full bg-gray-100">
+    <div class="flex h-full">
+      <div id="sidebar-container"></div>
+
+      <div class="flex-1 flex flex-col">
+        <div id="header-container"></div>
+
+        <main
+          id="main-content"
+          class="flex-1 p-6 overflow-y-auto h-[calc(100vh-80px)]"
+        >
+          <div class="flex-1 p-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8">
+              PEDIDOS POR VENDEDOR
+            </h1>
+
+            <!-- Tabs -->
+            <div class="flex gap-4 mb-6 border-b pb-2">
+              <button id="tabAprobados" class="tab-btn active">
+                PENDIENTES
+              </button>
+              <button id="tabEnviados" class="tab-btn">REVISIÓN</button>
+            </div>
+
+            <style>
+              .tab-btn {
+                padding: 8px 16px;
+                font-weight: 600;
+                color: #555;
+              }
+              .tab-btn.active {
+                border-bottom: 3px solid #4f46e5;
+                color: #4f46e5;
+              }
+            </style>
+
+            <div id="buscadorAprobados" class="mb-6 flex items-end gap-6">
+              <div class="flex-1 relative group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+                >
+                  <i
+                    class="fa-solid fa-magnifying-glass text-gray-300 group-hover:text-aliva-purple focus-within:text-aliva-purple"
+                  ></i>
+                </div>
+                <input
+                  type="text"
+                  id="inputSearchAprobados"
+                  placeholder="Buscar aprobados..."
+                  class="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-blue focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div id="buscadorEnviados" class="mb-6 flex items-end gap-6 hidden">
+              <div class="flex-1 relative group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+                >
+                  <i
+                    class="fa-solid fa-magnifying-glass text-gray-300 group-hover:text-aliva-purple focus-within:text-aliva-purple"
+                  ></i>
+                </div>
+                <input
+                  type="text"
+                  id="inputSearchEnviados"
+                  placeholder="Buscar enviados..."
+                  class="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-blue focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <!-- Tabla Aprobados -->
+            <div id="tablaAprobados" class="block">
+              <div
+                class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+              >
+                <div
+                  id="gridAprobados"
+                  class="ag-theme-alpine"
+                  style="height: 440px; width: 100%"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Tabla Enviados -->
+            <div id="tablaEnviados" class="hidden">
+              <div
+                class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+              >
+                <div
+                  id="gridEnviados"
+                  class="ag-theme-alpine"
+                  style="height: 440px; width: 100%"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/ag-grid-community@31.3.0/dist/ag-grid-community.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="/js/navar.js" defer></script>
+    <script src="/js/header.js" defer></script>
+
+    <script src="/js/ListaPedidosVendedor.js" defer></script>
+  </body>
+</html>

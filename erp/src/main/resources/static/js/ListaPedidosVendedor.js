@@ -1,49 +1,65 @@
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🧩 Iniciando ListaPedidos con ACL...");
+  console.log("📦 Logística – Cargando vista...");
 
-  let gridApiPedidos = null;
+  // APIs de los dos grids
+  let gridAprobadosApi = null;
+  let gridEnviadosApi = null;
 
-  const usuarioActual = JSON.parse(sessionStorage.getItem("usuario"));
-  console.log("👤 Usuario logueado:", usuarioActual);
+  let completarPedido = {
+    codPedido: null,
+    evidenciasFiles: [],
+  };
 
-  if (!usuarioActual) {
-    Swal.fire("Error", "No se encontró la sesión del usuario", "error");
-    return;
+  initTabs();
+  initGrids();
+  loadPedidosPendientes();
+  loadPedidosRevision();
+
+  // -----------------------------------------
+  //  TABS (Cambiar visible)
+  // -----------------------------------------
+  function initTabs() {
+    const tabAprobados = document.getElementById("tabAprobados");
+    const tabEnviados = document.getElementById("tabEnviados");
+
+    tabAprobados.addEventListener("click", () => activarTab("Aprobados"));
+    tabEnviados.addEventListener("click", () => activarTab("Enviados"));
   }
 
-  const idUsuario = usuarioActual.idUsuario;
-  const idRol = usuarioActual.rol?.idRol ?? 0;
+  function activarTab(tab) {
+    document
+      .querySelectorAll(".tab-btn")
+      .forEach((x) => x.classList.remove("active"));
+    document.getElementById("tab" + tab).classList.add("active");
 
-  // Resolver endpoint según rol
-  function getEndpointPedidos() {
-    switch (idRol) {
-      case 2: // Vendedor
-        return `/api/pedidos/vendedor/${idUsuario}`;
-      case 3: // Logistica
-        return "/api/pedidos/logistica";
-      default:
-        return "/api/pedidos";
-    }
+    // Mostrar buscador correcto
+    document
+      .getElementById("buscadorAprobados")
+      .classList.toggle("hidden", tab !== "Aprobados");
+    document
+      .getElementById("buscadorEnviados")
+      .classList.toggle("hidden", tab !== "Enviados");
+
+    // Mostrar tabla correcta
+    document
+      .getElementById("tablaAprobados")
+      .classList.toggle("hidden", tab !== "Aprobados");
+    document
+      .getElementById("tablaEnviados")
+      .classList.toggle("hidden", tab !== "Enviados");
+
+    // ❗ Importante: re-size del grid al cambiar pestaña
+    setTimeout(() => {
+      if (tab === "Aprobados") gridAprobadosApi.sizeColumnsToFit();
+      else gridEnviadosApi.sizeColumnsToFit();
+    }, 50);
   }
 
-  // =====================================================
-  // Permisso por rol
-  // =====================================================
-  function PermisoVerPedido() {
-    return idRol === 3;
-  }
-
-  function PermisoEditarPedido() {
-    return idRol === 1 || idRol === 2;
-  }
-
-  initListaPedidos();
-
-  async function initListaPedidos() {
-    const gridDiv = document.querySelector("#pedidosGrid");
-    if (!gridDiv) return;
-
-    const columnDefs = [
+  // -----------------------------------------
+  //  AG-GRID DEFINICIONES
+  // -----------------------------------------
+  function getColumnDefs(tipo) {
+    return [
       {
         headerName: "N° PEDIDO",
         field: "documento",
@@ -96,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
       {
         headerName: "ESTADO",
         field: "estadoPedido.descripcion",
-        minWidth: 150,
+        minWidth: 130,
         sortable: true,
         resizable: false,
         cellRenderer: (params) => {
@@ -234,99 +250,155 @@ document.addEventListener("DOMContentLoaded", () => {
           });
         },
       },
-      {
-        headerName: "",
-        Width: 100,
-        sortable: true,
-        resizable: false,
-        filter: false,
-        cellRenderer: (params) => {
-          const pedido = params.data;
-
-          let html = `<div class="flex justify-center gap-2">`;
-
-          if (PermisoEditarPedido()) {
-            html += `
-            <button
-              onclick="editarDetallePedido('${pedido.codPedido}')"
-              class="text-blue-600 hover:text-blue-800 transition"
-              title="Ver detalle del pedido"
-            >
-              <i class="fa-regular fa-pen-to-square"></i>
-            </button>`;
-          }
-
-          if (PermisoVerPedido()) {
-            html += `
-            <button
-              onclick="DespachoPedido('${pedido.codPedido}')"
-              class="text-purple-600 hover:text-purple-800 transition"
-              title="Herramienta de admin/supervisor"
-            >
+      tipo === "aprobados"
+        ? {
+            headerName: "",
+            Width: 70,
+            sortable: true,
+            resizable: false,
+            filter: false,
+            cellRenderer: (p) => `
+            <button onclick="DespachoPedido('${p.data.codPedido}')"
+                class="text-blue-700 hover:text-blue-900">
               <i class="fa-solid fa-eye"></i>
-            </button>`;
+            </button>`,
           }
-
-          html += `</div>`;
-          return html;
-        },
-      },
+        : {
+            headerName: "",
+            Width: 70,
+            sortable: true,
+            resizable: false,
+            filter: false,
+            cellRenderer: (p) => `
+              <button onclick="RevisionPedido('${p.data.codPedido}')"
+                  class="text-orange-600 hover:text-orange-800"
+                  title="Revisar pedido">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            `,
+          },
     ];
-
-    const gridOptions = {
-      columnDefs,
-      rowData: [],
-      pagination: true,
-      paginationPageSize: 10,
-      paginationPageSizeSelector: [10, 20, 50],
-      defaultColDef: {
-        flex: 1,
-        resizable: true,
-        sortable: true,
-        filter: true,
-      },
-      onGridReady: () => loadPedidos(),
-    };
-
-    gridApiPedidos = agGrid.createGrid(gridDiv, gridOptions);
-
-    const searchBox = document.getElementById("searchBoxPedidos");
-    if (searchBox) {
-      searchBox.addEventListener("input", (e) => {
-        gridApiPedidos.setQuickFilter(e.target.value.toLowerCase());
-      });
-    }
   }
 
-  async function loadPedidos() {
-    try {
-      const endpoint = getEndpointPedidos();
-      console.log("📡 Cargando pedidos desde:", endpoint);
+  // -----------------------------------------
+  // INIT GRIDS (Se crean solo una vez)
+  // -----------------------------------------
+  function initGrids() {
+    gridPendientesApi = agGrid.createGrid(
+      document.getElementById("gridAprobados"),
+      {
+        columnDefs: getColumnDefs("aprobados"),
+        rowData: [],
+        pagination: true,
+        paginationPageSize: 10,
+        defaultColDef: {
+          flex: 1,
+          resizable: true,
+          sortable: true,
+          filter: true,
+        },
+      }
+    );
 
-      const res = await fetch(endpoint);
-      if (!res.ok) throw new Error("Error al obtener pedidos");
+    gridRevisionApi = agGrid.createGrid(
+      document.getElementById("gridEnviados"),
+      {
+        columnDefs: getColumnDefs("enviados"),
+        rowData: [],
+        pagination: true,
+        paginationPageSize: 10,
+        defaultColDef: {
+          flex: 1,
+          resizable: true,
+          sortable: true,
+          filter: true,
+        },
+      }
+    );
+  }
+
+  // -----------------------------------------
+  //  CARGA DE DATA PARA VENDEDOR
+  // -----------------------------------------
+
+  async function loadPedidosPendientes() {
+    try {
+      const usr = JSON.parse(sessionStorage.getItem("usuario"));
+      const idUsuario = usr?.idUsuario;
+
+      if (!idUsuario) throw new Error("Usuario no encontrado en sesión");
+
+      const res = await fetch(
+        `/api/pedidos/vendedor/estado/1?idUsuario=${idUsuario}`
+      );
+
+      if (!res.ok) throw new Error("Error al cargar pendientes");
 
       const data = await res.json();
-      console.log("📦 Pedidos recibidos:", data.length);
 
-      gridApiPedidos.setGridOption("rowData", data);
+      gridPendientesApi.setGridOption("rowData", data);
     } catch (err) {
-      console.error("Error al cargar pedidos:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudieron cargar los pedidos",
-      });
+      Swal.fire(
+        "Error",
+        "No se pudieron cargar los pedidos pendientes",
+        "error"
+      );
     }
   }
 
+  async function loadPedidosRevision() {
+    try {
+      const usr = JSON.parse(sessionStorage.getItem("usuario"));
+      const idUsuario = usr?.idUsuario;
+
+      if (!idUsuario) throw new Error("Usuario no encontrado en sesión");
+
+      const res = await fetch(
+        `/api/pedidos/vendedor/estado/5?idUsuario=${idUsuario}`
+      );
+
+      if (!res.ok) throw new Error("Error al cargar pedidos en revisión");
+
+      const data = await res.json();
+
+      gridRevisionApi.setGridOption("rowData", data);
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        "No se pudieron cargar los pedidos en revisión",
+        "error"
+      );
+    }
+  }
+
+  // -----------------------------------------
+  //  BUSCADORES SEPARADOS
+  // -----------------------------------------
+  document
+    .getElementById("inputSearchAprobados")
+    .addEventListener("input", (e) => {
+      gridAprobadosApi.setQuickFilter(e.target.value.toLowerCase());
+    });
+
+  document
+    .getElementById("inputSearchEnviados")
+    .addEventListener("input", (e) => {
+      gridEnviadosApi.setQuickFilter(e.target.value.toLowerCase());
+    });
+
+  // -----------------------------------------
+  // ABRIR PENDIENTE
+  // -----------------------------------------
   window.DespachoPedido = (codPedido) => {
     localStorage.setItem("pedidoSeleccionado", codPedido);
     window.location.href = "/pedidos/despacho";
   };
 
-  window.editarDetallePedido = (codPedido) => {
+  // -----------------------------------------
+  // ABRIR REVISION
+  // -----------------------------------------
+  window.RevisionPedido = (codPedido) => {
     localStorage.setItem("pedidoSeleccionado", codPedido);
-    window.location.href = "/pedidos/editar";
+    window.location.href = "/pedidos/revision";
   };
 });

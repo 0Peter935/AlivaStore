@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -21,7 +22,6 @@ public class PedidoDTO {
     private EmpresaEntregaDTO empresaEntrega;
 
     private String documento;
-    private String evidencia;
     private double subtotal;
     private double igv;
     private double montoTotal;
@@ -32,8 +32,15 @@ public class PedidoDTO {
     private double montoAdelanto;
     private String observacion;
     private OffsetDateTime fechaReg;
+    private LocalDateTime fechaAprobado;
 
     private List<PedidoNotaDTO> notas;
     private List<PedidoDetalleDTO> detalles;
+    private List<PedidoEvidenciaDTO> evidencias;
+    private List<PedidoLogDTO> logs;
+
+    // extras
+    private List<Integer> evidenciasEliminar;
+    private PedidoLogDTO logNuevo;
 
 }

@@ -12,10 +12,11 @@ public class PedidoDetalleDTO {
     private int idDetallePedido;
     private String codPedido;
     private String codProducto;
-    private String codVariante;
+    private VarianteProductoDTO variante;
     private String nombreProducto;
     private int cantidad;
     private double precioUnitario;
     private double precioTotal;
+    private Boolean esRegalo;
 
 }

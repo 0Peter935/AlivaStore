@@ -18,6 +18,7 @@ import com.store.erp.Services.ProductoService;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,13 +56,29 @@ public class ShopifyController {
             JsonNode json = mapper.readTree(payload);
 
             PedidoDTO pedido = mapearPedidoShopify(json);
-            pedidoService.registrarPedidoCompleto(pedido);
+
+            // ⭐ NUEVO: asignación de vendedor automática
+            Integer idVendedor = pedidoService.obtenerVendedorDisponible();
+            if (idVendedor != null) {
+                UsuarioDTO vendedor = new UsuarioDTO();
+                vendedor.setIdUsuario(idVendedor);
+                pedido.setUsuario(vendedor);
+            } else {
+                // Por si no hay vendedores activos
+                UsuarioDTO defaultUser = new UsuarioDTO();
+                defaultUser.setIdUsuario(1); // o el que decidas
+                pedido.setUsuario(defaultUser);
+            }
+
+            boolean ok = pedidoService.registrarPedido(pedido);
 
             return ResponseEntity.ok().build();
+
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Error al procesar el JSON del pedido de Shopify");
+                    .body("Error al procesar JSON del pedido de Shopify");
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -69,11 +86,6 @@ public class ShopifyController {
         }
     }
 
-    @PostMapping("/orders/updated")
-    public ResponseEntity<?> orderUpdated(@RequestBody Map<String, Object> body) {
-        //pedidoService.actualizarPedido(body);
-        return ResponseEntity.ok().build();
-    }
 
     @PostMapping("/products/create")
     public ResponseEntity<?> productCreated(@RequestBody String payload) {
@@ -439,7 +451,7 @@ public class ShopifyController {
                 : (firstName + " " + lastNameRaw).trim();
 
         OffsetDateTime fechaReg = OffsetDateTime.parse(json.path("created_at").asText());
-        OffsetDateTime fechaAct = OffsetDateTime.parse(json.path("updated_at").asText());
+        LocalDateTime fechaAct = LocalDateTime.parse(json.path("updated_at").asText());
 
         int canOrdenes = json.path("orders_count").asInt(0);
         String direccion = json.path("default_address").path("address1").asText("");
@@ -459,7 +471,7 @@ public class ShopifyController {
             telefono = json.get("addresses").get(0).path("phone").asText("");
         }
 
-        cliente.setCodigoCliente(codCliente);
+        cliente.setCodCliente(codCliente);
         cliente.setNombres(nombreCompleto);
         cliente.setCorreo(correo);
         cliente.setTelefono(telefono);
@@ -520,7 +532,7 @@ public class ShopifyController {
             JsonNode c = json.get("customer");
 
             ClienteDTO cli = new ClienteDTO();
-            cli.setCodigoCliente(c.path("id").asText(""));
+            cli.setCodCliente(c.path("id").asText(""));
 
             pedido.setCliente(cli);
         }
@@ -569,7 +581,10 @@ public class ShopifyController {
                 PedidoDetalleDTO det = new PedidoDetalleDTO();
 
                 det.setCodProducto(item.path("product_id").asText(""));
-                det.setCodVariante(item.path("variant_id").asText(""));
+
+                VarianteProductoDTO v = new VarianteProductoDTO();
+                v.setCodVariante(item.path("variant_id").asText(""));
+                det.setVariante(v);
 
                 String nombreProducto = item.path("title").asText("");
                 String nombreVariante = item.path("variant_title").asText("");

@@ -20,7 +20,7 @@ public class ReporteriaController {
     @Autowired
     private ReporteriaService reporteriaService;
 
-  @GetMapping("/cards")
+    @GetMapping("/cards")
     public ResponseEntity<?> obtenerCardsIndicadores(
         @RequestParam("inicio") Date fechaInicio,
         @RequestParam("fin") Date fechaFin,
@@ -49,7 +49,7 @@ public class ReporteriaController {
             @RequestParam(value = "lugar", required = false) String lugar
     ) {
         try {
-             if (lugar == null || lugar.trim().isEmpty()) {
+            if (lugar == null || lugar.trim().isEmpty()) {
                 lugar = null;
             }
 
@@ -69,7 +69,7 @@ public class ReporteriaController {
             @RequestParam(value = "lugar", required = false) String lugar
     ) {
         try {
-             if (lugar == null || lugar.trim().isEmpty()) {
+            if (lugar == null || lugar.trim().isEmpty()) {
                 lugar = null;
             }
             
@@ -89,7 +89,7 @@ public class ReporteriaController {
             @RequestParam(value = "lugar", required = false) String lugar
     ) {
         try {
-             if (lugar == null || lugar.trim().isEmpty()) {
+            if (lugar == null || lugar.trim().isEmpty()) {
                 lugar = null;
             }
             
@@ -109,7 +109,7 @@ public class ReporteriaController {
             @RequestParam(value = "lugar", required = false) String lugar
     ) {
         try {
-             if (lugar == null || lugar.trim().isEmpty()) {
+            if (lugar == null || lugar.trim().isEmpty()) {
                 lugar = null;
             }
             

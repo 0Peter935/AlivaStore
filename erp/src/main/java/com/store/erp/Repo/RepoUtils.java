@@ -1,19 +1,11 @@
 package com.store.erp.Repo;
 
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.store.erp.Models.ReporteIndicadoresCardsDTO;
-import com.store.erp.Models.UtilsDTO;
 
 public class RepoUtils {
 
@@ -46,6 +38,15 @@ public class RepoUtils {
         catch (Exception e) { return 0; }
     }
 
+    public static long safeLong(ResultSet rs, String col) throws SQLException {
+        if (!hasColumn(rs, col)) return 0L;
+        Object val = rs.getObject(col);
+        if (val == null) return 0L;
+        if (val instanceof Number) return ((Number) val).longValue();
+        try { return Long.parseLong(val.toString()); }
+        catch (Exception e) { return 0L; }
+    }
+
     public static double safeDouble(ResultSet rs, String col) throws SQLException {
         if (!hasColumn(rs, col)) return 0.0;
         Object val = rs.getObject(col);
@@ -67,7 +68,7 @@ public class RepoUtils {
         return date != null ? date.toLocalDate() : null;
     }
 
-    public static LocalDateTime safeDateTime(ResultSet rs, String col) throws SQLException {
+    public static LocalDateTime safeLocalDateTime(ResultSet rs, String col) throws SQLException {
         if (!hasColumn(rs, col)) return null;
         java.sql.Timestamp timestamp = rs.getTimestamp(col);
         return timestamp != null ? timestamp.toLocalDateTime() : null;

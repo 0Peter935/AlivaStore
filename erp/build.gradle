@@ -40,8 +40,13 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // Manejo de excels
+    implementation 'org.apache.poi:poi:5.2.3'
+    implementation 'org.apache.poi:poi-ooxml:5.2.3'
+
+
     // DevTools (recarga en caliente de HTML/JS/CSS y reinicio rápido)
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    //developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     // Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

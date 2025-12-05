@@ -1,5 +1,6 @@
 package com.store.erp.Models;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 import lombok.AllArgsConstructor;
@@ -11,8 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ClienteDTO {
 
-    private int idCliente;
-    private String codigoCliente;
+    private Long idCliente;
+    private String codCliente;
     private String nombres;
     private String dni;
     private String correo;
@@ -23,6 +24,6 @@ public class ClienteDTO {
     private String provincia;
     private String pais;
     private OffsetDateTime fechaReg;
-    private OffsetDateTime fechaAct;
+    private LocalDateTime fechaAct;
 
 }

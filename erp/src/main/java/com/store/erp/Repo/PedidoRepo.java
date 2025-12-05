@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -12,6 +15,8 @@ import org.springframework.stereotype.Repository;
 import com.microsoft.sqlserver.jdbc.SQLServerDataTable;
 import com.store.erp.Models.PedidoDTO;
 import com.store.erp.Models.PedidoDetalleDTO;
+import com.store.erp.Models.PedidoEvidenciaDTO;
+import com.store.erp.Models.PedidoLogDTO;
 import com.store.erp.Models.PedidoNotaDTO;
 
 @Repository
@@ -31,8 +36,21 @@ public class PedidoRepo extends Mappers {
         }, (ResultSet rs) -> mapPedidosConDetalles(rs));
     }
 
-    public List<PedidoDTO> listarPedidosParaLogistica() {
-        return jdbcTemplate.query("EXEC SP_PEDIDO_LISTAR_PARA_LOGISTICA", (ResultSet rs) -> mapPedidosConDetalles(rs));
+    public List<PedidoDTO> listarPedidosPorEstado(int idEstado, Integer idUsuario) {
+        return jdbcTemplate.query(con -> {
+            PreparedStatement ps = con.prepareStatement("EXEC SP_PEDIDO_LISTAR_POR_ESTADO ?, NULL");
+            ps.setInt(1, idEstado);
+            return ps;
+        }, (ResultSet rs) -> mapPedidosConDetalles(rs));
+    }
+
+    public List<PedidoDTO> listarPedidosPorEstadoyUsuario(int idEstado, Integer idUsuario) {
+        return jdbcTemplate.query(con -> {
+            PreparedStatement ps = con.prepareStatement("EXEC SP_PEDIDO_LISTAR_POR_ESTADO ?, ?");
+            ps.setInt(1, idEstado);
+            ps.setInt(2, idUsuario);
+            return ps;
+        }, (ResultSet rs) -> mapPedidosConDetalles(rs));
     }
 
     public PedidoDTO obtenerPedidoPorCod(String codPedido) {
@@ -69,7 +87,6 @@ public class PedidoRepo extends Mappers {
         });
     }
 
-
     public int guardarPedidoCompleto(PedidoDTO pedido) {
         return jdbcTemplate.execute((Connection con) -> {
             try {
@@ -88,7 +105,7 @@ public class PedidoRepo extends Mappers {
                 for (PedidoDetalleDTO det : pedido.getDetalles()) {
                     tvpDetalles.addRow(
                         det.getCodProducto(),
-                        det.getCodVariante(),
+                        det.getVariante().getCodVariante(),
                         det.getNombreProducto(),
                         det.getCantidad(),
                         det.getPrecioUnitario(),
@@ -120,11 +137,10 @@ public class PedidoRepo extends Mappers {
 
                     ps.setString(1, pedido.getCodPedido());
                     ps.setInt(2, pedido.getUsuario().getIdUsuario());
-                    ps.setString(3, pedido.getCliente().getCodigoCliente());
+                    ps.setString(3, pedido.getCliente().getCodCliente());
                     ps.setInt(4, pedido.getEstadoPedido().getIdEstadoPedido());
                     ps.setInt(5, pedido.getEmpresaEntrega().getIdEmpresaEntrega());
                     ps.setString(6, pedido.getDocumento());
-                    ps.setString(7, pedido.getEvidencia());
                     ps.setBigDecimal(8, BigDecimal.valueOf(pedido.getSubtotal()));
                     ps.setBigDecimal(9, BigDecimal.valueOf(pedido.getIgv()));
                     ps.setBoolean(10, pedido.getAdelanto());
@@ -148,7 +164,7 @@ public class PedidoRepo extends Mappers {
         });
     }
 
-    public void actualizarPedidoCompleto(PedidoDTO pedido) {
+    public void actualizarPedidoConDetalle(PedidoDTO pedido) {
 
         jdbcTemplate.execute((Connection con) -> {
             try {
@@ -156,7 +172,7 @@ public class PedidoRepo extends Mappers {
                 System.out.println("📌 Construyendo TVP DETALLE_PEDIDO...");
 
                 // ===========================
-                // 1️⃣ Crear TVP Detalles
+                // TVP Detalles
                 // ===========================
                 SQLServerDataTable tvp = new SQLServerDataTable();
 
@@ -166,46 +182,47 @@ public class PedidoRepo extends Mappers {
                 tvp.addColumnMetadata("CANTIDAD", java.sql.Types.INTEGER);
                 tvp.addColumnMetadata("PRECIO_UNITARIO", java.sql.Types.DECIMAL);
                 tvp.addColumnMetadata("PRECIO_TOTAL", java.sql.Types.DECIMAL);
+                tvp.addColumnMetadata("DP_REGALO", java.sql.Types.BIT);
 
                 if (pedido.getDetalles() != null) {
                     for (PedidoDetalleDTO det : pedido.getDetalles()) {
 
                         tvp.addRow(
                             det.getCodProducto(),
-                            det.getCodVariante(),
+                            det.getVariante().getCodVariante(),
                             det.getNombreProducto(),
                             det.getCantidad(),
                             det.getPrecioUnitario(),
-                            det.getPrecioTotal()
+                            det.getPrecioTotal(),
+                            det.getEsRegalo()
                         );
                     }
                 }
 
                 // ===========================
-                // 2️⃣ Ejecutar SP
+                // Ejecutar SP
                 // ===========================
-                String sql = "EXEC SP_PEDIDO_ACTUALIZAR_COMPLETO ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+                String sql = "EXEC SP_PEDIDO_ACTUALIZAR_COMPLETO ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
 
                 try (PreparedStatement ps = con.prepareStatement(sql)) {
 
                     ps.setString(1, pedido.getCodPedido());
-                    ps.setString(2, pedido.getDocumento());
-                    ps.setString(3, pedido.getTipoComprobante());
+                    ps.setString(2, pedido.getTipoComprobante());
 
-                    ps.setBigDecimal(4, BigDecimal.valueOf(pedido.getSubtotal()));
-                    ps.setBigDecimal(5, BigDecimal.valueOf(pedido.getIgv()));
-                    ps.setBigDecimal(6, BigDecimal.valueOf(pedido.getMontoTotal()));
+                    ps.setBigDecimal(3, BigDecimal.valueOf(pedido.getSubtotal()));
+                    ps.setBigDecimal(4, BigDecimal.valueOf(pedido.getIgv()));
+                    ps.setBigDecimal(5, BigDecimal.valueOf(pedido.getMontoTotal()));
 
-                    ps.setBoolean(7, pedido.getAdelanto());
-                    ps.setBigDecimal(8, BigDecimal.valueOf(pedido.getMontoAdelanto()));
+                    ps.setBoolean(6, pedido.getAdelanto());
+                    ps.setBigDecimal(7, BigDecimal.valueOf(pedido.getMontoAdelanto()));
 
-                    ps.setString(9, pedido.getTipoPago());
-                    ps.setString(10, pedido.getEvidencia());
+                    ps.setString(8, pedido.getTipoPago());
+                    ps.setString(9,pedido.getObservacion());
 
-                    ps.setLong(11, pedido.getEmpresaEntrega().getIdEmpresaEntrega());
-                    ps.setInt(12, pedido.getEstadoPedido().getIdEstadoPedido());
+                    ps.setLong(10, pedido.getEmpresaEntrega().getIdEmpresaEntrega());
+                    ps.setInt(11, pedido.getEstadoPedido().getIdEstadoPedido());
 
-                    ps.setObject(13, tvp);
+                    ps.setObject(12, tvp);
 
                     ps.execute();
                 }
@@ -219,5 +236,61 @@ public class PedidoRepo extends Mappers {
             }
         });
     }
+
+    public List<PedidoEvidenciaDTO> listarEvidenciasPedido(String codPedido){
+        return jdbcTemplate.query(
+            "EXEC SP_PEDIDO_LISTAR_EVIDENCIA ?",
+            (rs, _) -> Mappers.mapEvidenciaPedido(rs),
+            codPedido
+        );
+    }
+
+    public void agregarEvidenciaPedido(PedidoEvidenciaDTO evidencia) {
+        jdbcTemplate.update("EXEC dbo.SP_PEDIDO_AGREGAR_EVIDENCIA ?, ?, ?", 
+            evidencia.getCodPedido(), 
+            evidencia.getMotivo(), 
+            evidencia.getUrl());
+    }
+
+    public void eliminarEvidenciaPedidoPorId(Integer idEvidencia) {
+        String sql = "EXEC SP_PEDIDO_EVIDENCIA_ELIMINAR ?";
+        jdbcTemplate.update(sql, idEvidencia);
+    }
+
+    public List<PedidoLogDTO> listarlogsPedido(String codPedido){
+        return jdbcTemplate.query(
+            "EXEC SP_PEDIDO_LOG_LISTAR ?",
+            (rs, _) -> Mappers.mapPedidoLog(rs),
+            codPedido
+        );
+    }
+
+    public void insertarLog(PedidoLogDTO log) {
+        jdbcTemplate.update("EXEC SP_PEDIDO_LOG_INSERTAR ?, ?, ?, ?",
+            log.getIdUsuario(),
+            log.getCodPedido(),
+            log.getIdEstadoP(),
+            log.getMotivoLog());
+    }
+
+    public void actualizarEstado(PedidoDTO pedido) {
+        jdbcTemplate.update("EXEC SP_PEDIDO_ACTUALIZAR_REGRESO ?, ?",
+            pedido.getCodPedido(),
+            pedido.getEstadoPedido().getIdEstadoPedido()
+        );
+    }
+
+    public Map<Integer, Integer> obtenerCargaPedidosPorVendedor() {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+            "SELECT ID_USUARIO, COUNT(*) AS total FROM PEDIDO GROUP BY ID_USUARIO"
+        );
+
+        Map<Integer, Integer> carga = new HashMap<>();
+        for (Map<String, Object> row : rows) {
+            carga.put((Integer) row.get("idUsuario"), ((Long) row.get("total")).intValue());
+        }
+        return carga;
+    }
+
 
 }

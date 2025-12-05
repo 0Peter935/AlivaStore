@@ -150,8 +150,8 @@ public class Mappers extends RepoUtils {
     // =====================================================
     public static ClienteDTO mapCliente(ResultSet rs) throws SQLException {
         ClienteDTO c = new ClienteDTO();
-        c.setIdCliente(safeInt(rs, "ID_CLIENTE"));
-        c.setCodigoCliente(safeString(rs, "COD_CLIENTE"));
+        c.setIdCliente(safeLong(rs, "ID_CLIENTE"));
+        c.setCodCliente(safeString(rs, "COD_CLIENTE"));
         c.setNombres(safeString(rs, "NOMBRE_COMPLETO"));
         c.setDni(safeString(rs, "DNI"));
         c.setCorreo(safeString(rs, "CORREO"));
@@ -162,7 +162,7 @@ public class Mappers extends RepoUtils {
         c.setProvincia(safeString(rs, "PROVINCIA"));
         c.setPais(safeString(rs, "PAIS"));
         c.setFechaReg(safeOffsetDateTime(rs, "FECHA_REGISTRO"));
-        c.setFechaAct(safeOffsetDateTime(rs, "FECHA_ACTUALIZACION"));
+        c.setFechaAct(safeLocalDateTime(rs, "FECHA_ACTUALIZACION"));
         
         return c;
     }
@@ -221,8 +221,8 @@ public class Mappers extends RepoUtils {
         p.setAdelanto(safeBool(rs, "ADELANTO"));
         p.setMontoAdelanto(safeDouble(rs, "MONTO_ADELANTO"));
         p.setObservacion(safeString(rs, "OBSERVACION"));
-        p.setEvidencia(safeString(rs, "EVIDENCIA"));
         p.setFechaReg(safeOffsetDateTime(rs, "FECHA_REGISTRO"));
+        p.setFechaAprobado(safeLocalDateTime(rs, "FECHA_APROBADO"));
 
         p.setUsuario(mapUsuario(rs));
         p.setCliente(mapCliente(rs));
@@ -244,11 +244,18 @@ public class Mappers extends RepoUtils {
         d.setIdDetallePedido(safeInt(rs, "ID_DETALLE_P"));
         d.setCodPedido(safeString(rs, "COD_PEDIDO"));
         d.setCodProducto(safeString(rs, "COD_PRODUCTO"));
-        d.setCodVariante(safeString(rs, "COD_VARIANTE"));
+
+        VarianteProductoDTO v = new VarianteProductoDTO();
+        v.setIdVariante(safeInt(rs, "ID_VARIANTE"));
+        v.setCodVariante(safeString(rs, "COD_VARIANTE"));
+        v.setImgVariante(safeString(rs, "IMG_VARIANTE"));
+        d.setVariante(v);
+
         d.setNombreProducto(safeString(rs, "NOMBRE_PRODUCTO"));
         d.setCantidad(safeInt(rs, "CANTIDAD"));
         d.setPrecioUnitario(safeDouble(rs, "PRECIO_UNITARIO"));
         d.setPrecioTotal(safeDouble(rs, "PRECIO_TOTAL"));
+        d.setEsRegalo(safeBool(rs, "DP_REGALO"));
 
         return d;
     }
@@ -265,6 +272,36 @@ public class Mappers extends RepoUtils {
         n.setDescripcion(safeString(rs, "DESCRIPCION"));
 
         return n;
+    }
+
+    ///====================================================
+    /// Mapeo de EVIDENCIA DE PEDIDO
+    ///====================================================
+    public static PedidoEvidenciaDTO mapEvidenciaPedido(ResultSet rs) throws SQLException {
+        PedidoEvidenciaDTO e = new PedidoEvidenciaDTO();
+
+        e.setIdEvidenciaPedido(safeLong(rs, "ID_EVIDENCIA"));
+        e.setCodPedido(safeString(rs, "COD_PEDIDO"));
+        e.setMotivo(safeString(rs, "MOTIVO"));
+        e.setUrl(safeString(rs, "URL"));
+
+        return e;
+    }
+
+    //=====================================================
+    // Mapeo de LOG DE PEDIDO
+    //=====================================================
+    public static PedidoLogDTO mapPedidoLog(ResultSet rs) throws SQLException {
+        PedidoLogDTO l = new PedidoLogDTO();
+
+        l.setIdLog(safeLong(rs, "ID_LOG"));
+        l.setIdUsuario(safeLong(rs, "ID_USUARIO_LOG"));
+        l.setCodPedido(safeString(rs, "COD_PEDIDO"));
+        l.setIdEstadoP(safeInt(rs, "ID_ESTADO_P_L"));
+        l.setMotivoLog(safeString(rs, "MOTIVO_LOG"));
+        l.setFechaLog(safeLocalDateTime(rs, "FECHA_LOG"));
+
+        return l;
     }
 
     // =====================================================

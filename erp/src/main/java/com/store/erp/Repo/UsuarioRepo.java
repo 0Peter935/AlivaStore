@@ -2,6 +2,7 @@ package com.store.erp.Repo;
 
 import com.store.erp.Models.UsuarioDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -99,5 +100,13 @@ public class UsuarioRepo extends Mappers {
             u.getTelefono()
         );
     }
+
+    public List<UsuarioDTO> listarVendedoresActivos() {
+        return jdbcTemplate.query(
+            "SELECT ID_USUARIO FROM USUARIO WHERE ID_ROL = 2 AND ESTADO = 1",
+            new BeanPropertyRowMapper<>(UsuarioDTO.class)
+        );
+    }
+
 
 }

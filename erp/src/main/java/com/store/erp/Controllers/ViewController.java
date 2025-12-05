@@ -36,9 +36,29 @@ public class ViewController {
         return "ListaPedidos";
     }
 
+    @GetMapping("/pedidos/admin/lista")
+    public String vistaAdmin() {
+        return "ListaPedidosAdmin";
+    }
+
+    @GetMapping("/pedidos/vendedor/lista")
+    public String vistaVendedor() {
+        return "ListaPedidosVendedor";
+    }
+
+    @GetMapping("/pedidos/logistica/lista")
+    public String vistaLogistica() {
+        return "ListaPedidosLogistica";
+    }
+
     @GetMapping("/pedidos/despacho")
     public String mostrarDespachoPedido() {
         return "DespachoPedido";
+    }
+
+    @GetMapping("/pedidos/revision")
+    public String mostrarRevisionPedido() {
+        return "RevisionPedido";
     }
 
     @GetMapping("/pedidos/editar")
@@ -51,8 +71,13 @@ public class ViewController {
         return "Sincronizar";
     }
 
-     @GetMapping("/reporteria/indicadores")
+    @GetMapping("/reporteria/indicadores")
     public String mostrarReporteriaIndicadores() {
         return "Reporteria"; 
+    }
+
+    @GetMapping("/excel/merge-ui")
+    public String excelUI() {
+        return "merge-excel";
     }
 }

@@ -12,7 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/js/tailwind-config.js"></script>
 
-    <link rel="stylesheet" href="/css/DespachoPedido.css" />
+    <link rel="stylesheet" href="/css/RevisionPedido.css" />
 
     <link
       rel="stylesheet"
@@ -67,74 +67,44 @@
               <div class="grid grid-cols-2 gap-4 text-sm text-gray-700">
                 <div>
                   <label class="block text-gray-600 text-xs font-semibold mb-1">
-                    DNI
+                    DNI <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    id="clienteDni"
-                    type="text"
-                    class="campo-form"
-                    disabled
-                  />
+                  <input id="clienteDni" type="text" class="campo-form" />
                 </div>
 
                 <div>
                   <label class="block text-gray-600 text-xs font-semibold mb-1">
-                    CLIENTE
+                    CLIENTE <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    id="clienteNombre"
-                    type="text"
-                    class="campo-form"
-                    disabled
-                  />
+                  <input id="clienteNombre" type="text" class="campo-form" />
                 </div>
 
                 <div>
                   <label class="block text-gray-600 text-xs font-semibold mb-1">
-                    TELÉFONO
+                    TELÉFONO <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    id="clienteTelefono"
-                    type="text"
-                    class="campo-form"
-                    disabled
-                  />
+                  <input id="clienteTelefono" type="text" class="campo-form" />
                 </div>
 
                 <div>
                   <label class="block text-gray-600 text-xs font-semibold mb-1">
-                    DIRECCIÓN
+                    DIRECCIÓN <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    id="clienteDireccion"
-                    type="text"
-                    class="campo-form"
-                    disabled
-                  />
+                  <input id="clienteDireccion" type="text" class="campo-form" />
                 </div>
 
                 <div>
                   <label class="block text-gray-600 text-xs font-semibold mb-1">
-                    CIUDAD
+                    CIUDAD <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    id="clienteCiudad"
-                    type="text"
-                    class="campo-form"
-                    disabled
-                  />
+                  <input id="clienteCiudad" type="text" class="campo-form" />
                 </div>
 
                 <div>
                   <label class="block text-gray-600 text-xs font-semibold mb-1">
-                    PROVINCIA
+                    PROVINCIA <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    id="clienteProvincia"
-                    type="text"
-                    class="campo-form"
-                    disabled
-                  />
+                  <input id="clienteProvincia" type="text" class="campo-form" />
                 </div>
               </div>
             </section>
@@ -158,33 +128,29 @@
                 class="grid grid-cols-3 gap-4 text-sm text-gray-700"
               >
                 <div>
+                  <!-- 👇 ESTE SIN ASTERISCO, COMO PEDISTE -->
                   <label class="block text-gray-600 text-xs font-semibold mb-1">
                     TIPO DE COMPROBANTE
                   </label>
-                  <select id="pedidoComprobante" class="campo-form" disabled>
+                  <select id="pedidoComprobante" class="campo-form">
                     <option value="">SELECCIONAR COMPROBANTE</option>
                   </select>
                 </div>
 
                 <div>
                   <label class="block text-gray-600 text-xs font-semibold mb-1">
-                    Tipo de Pago
+                    Tipo de Pago <span class="text-red-500">*</span>
                   </label>
-                  <select id="pedidoTipoPago" class="campo-form" disabled>
+                  <select id="pedidoTipoPago" class="campo-form">
                     <option value="">SELECCIONAR TIPO</option>
                   </select>
                 </div>
 
                 <div>
                   <label class="block text-gray-600 text-xs font-semibold mb-1">
-                    CIUDAD
+                    CIUDAD <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    id="pedidoCiudad"
-                    type="text"
-                    class="campo-form"
-                    disabled
-                  />
+                  <input id="pedidoCiudad" type="text" class="campo-form" />
                 </div>
 
                 <div class="col-span-3">
@@ -195,7 +161,6 @@
                     id="pedidoObservaciones"
                     class="campo-form h-24 resize-none"
                     placeholder="Ejemplo: Referencias de dirección, persona que recogerá el pedido, indicaciones especiales..."
-                    disabled
                   ></textarea>
                 </div>
               </div>
@@ -207,6 +172,12 @@
                 <h2 class="text-xl font-bold text-gray-700">
                   Productos del Pedido
                 </h2>
+                <button
+                  id="btnAgregarProducto"
+                  class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2"
+                >
+                  <i class="fa-solid fa-plus"></i> Agregar Producto
+                </button>
               </div>
 
               <div
@@ -231,37 +202,30 @@
               </h2>
               <div
                 id="infoFinanciera"
-                class="grid grid-cols-4 gap-4 text-sm text-gray-700 items-center"
+                class="grid grid-cols-3 gap-4 text-sm text-gray-700"
               >
-                <div class="flex flex-col">
+                <div>
                   <strong>SUBTOTAL SIN IGV:</strong>
                   <span id="subtotalValor">S/ 0.00</span>
                 </div>
 
-                <div class="flex flex-col">
+                <div>
                   <strong>IGV:</strong>
                   <span id="igvValor">S/ 0.00</span>
                 </div>
 
-                <div class="flex flex-col">
+                <div>
                   <strong>MONTO TOTAL:</strong>
                   <span id="totalValor" class="text-green-600 font-semibold"
                     >S/ 0.00</span
                   >
                 </div>
-
-                <div class="flex flex-col">
-                  <strong>ADELANTO:</strong>
-                  <span id="adelantoTexto" class="text-blue-600 font-semibold"
-                    >Sin adelanto</span
-                  >
-                </div>
               </div>
             </section>
 
-            <!-- Comprobante y Estado de Pago -->
+            <!-- 🧠 Comprobante y Estado de Pago -->
             <section class="grid grid-cols-2 gap-6">
-              <!-- Carga de Comprobante -->
+              <!-- 📸 Carga de Comprobante -->
               <div
                 id="evidenciaContainer"
                 class="bg-white shadow-md rounded-lg p-5 border"
@@ -280,32 +244,71 @@
                 <div id="previewComprobante"></div>
               </div>
 
-              <!-- NUEVA SECCIÓN: DATOS DE ENVÍO -->
+              <!-- 💵 Estado de Pago -->
               <div
-                id="datosEnvioContainer"
-                class="bg-white shadow-md rounded-lg p-5 border"
+                id="estadoPagoContainer"
+                class="bg-white shadow-md rounded-lg p-4 border"
               >
-                <h2 class="text-lg font-bold text-gray-700 mb-4">
-                  DATOS DE ENVÍO
+                <h2 class="text-base font-bold text-gray-700 mb-2">
+                  ADELANTO DEL PAGO
                 </h2>
 
-                <div class="space-y-4 text-sm">
-                  <!-- Empresa de entrega -->
-                  <div>
-                    <label
-                      class="block text-gray-600 text-xs font-semibold mb-1"
-                    >
-                      EMPRESA DE ENTREGA <span class="text-red-500">*</span>
-                    </label>
+                <div class="space-y-3">
+                  <!-- 💰 Pago completo -->
+                  <div
+                    class="border-2 border-purple-500 bg-purple-50 rounded-lg p-3 cursor-pointer transition-all"
+                    onclick="selectCard(this, 'adelantoContainer', false)"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <i
+                          class="fas fa-check-circle text-purple-600 text-lg mr-2"
+                        ></i>
+                        <span class="font-semibold text-gray-800 text-sm"
+                          >SIN ADELANTO</span
+                        >
+                      </div>
+                      <i
+                        class="fas fa-money-bill-wave text-purple-600 text-base"
+                      ></i>
+                    </div>
+                  </div>
 
-                    <select
-                      id="selectEmpresaEntrega"
-                      class="campo-form focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="">SELECCIONAR EMPRESA</option>
-                      <option value="2">SHALOM</option>
-                      <option value="4">OLVA</option>
-                    </select>
+                  <!-- 💵 Pago con adelanto -->
+                  <div
+                    class="border-2 border-gray-300 rounded-lg p-3 cursor-pointer hover:border-purple-300 transition-all"
+                    onclick="selectCard(this, 'adelantoContainer', true)"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <i class="far fa-circle text-gray-400 text-lg mr-2"></i>
+                        <span class="font-semibold text-gray-800 text-sm"
+                          >ADELANTO DEL PAGO</span
+                        >
+                      </div>
+                      <i
+                        class="fas fa-hand-holding-usd text-gray-400 text-base"
+                      ></i>
+                    </div>
+                    <div id="adelantoContainer" class="hidden">
+                      <label class="block text-xs text-gray-600 mt-2 mb-1">
+                        MONTO ADELANTADO: <span class="text-red-500">*</span>
+                      </label>
+                      <div class="relative">
+                        <span
+                          class="absolute left-3 top-2 text-gray-500 text-sm"
+                          >S/</span
+                        >
+                        <input
+                          type="text"
+                          id="montoAdelanto"
+                          min="0"
+                          step="0.01"
+                          value="0.00"
+                          class="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-right text-sm"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -326,13 +329,6 @@
             </section>
 
             <button
-              id="btnRegresarPedido"
-              class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold"
-            >
-              Regresar pedido
-            </button>
-
-            <button
               id="btnGuardarPedido"
               class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
@@ -340,11 +336,100 @@
             </button>
 
             <button
-              id="btnEnviarPedido"
-              class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded"
+              id="btnAprobarPedido"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
             >
               Aprobar Pedido
             </button>
+          </div>
+
+          <!-- Modal para agregar producto -->
+          <div
+            id="modalAgregarProducto"
+            class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+          >
+            <div
+              class="bg-white rounded-xl shadow-xl w-[420px] p-6 relative flex flex-col gap-4"
+            >
+              <h2 class="text-xl font-bold text-gray-700 text-center mb-2">
+                Agregar Producto
+              </h2>
+
+              <!-- Toggle -->
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-gray-700 font-semibold"
+                  >Tipo de producto:</span
+                >
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <span class="text-sm text-gray-600">Normal</span>
+                  <input type="checkbox" id="toggleRegalo" class="hidden" />
+                  <div
+                    id="toggleSwitch"
+                    class="w-10 h-5 bg-gray-300 rounded-full relative transition-all duration-300"
+                  >
+                    <div
+                      id="toggleCircle"
+                      class="absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full shadow transition-all duration-300"
+                    ></div>
+                  </div>
+                  <span class="text-sm text-blue-600 font-semibold"
+                    >Regalo</span
+                  >
+                </label>
+              </div>
+
+              <!-- Buscador de producto/variante -->
+              <div class="relative">
+                <label class="block text-gray-700 mb-1"
+                  >Seleccionar producto:</label
+                >
+
+                <input
+                  id="inputBuscarProducto"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Escribe código o nombre del producto/variante..."
+                  class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                />
+
+                <!-- Dropdown de sugerencias -->
+                <div
+                  id="listaSugerenciasProductos"
+                  class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto z-50 hidden"
+                >
+                  <!-- Aquí se pintan las opciones con JS -->
+                </div>
+              </div>
+
+              <!-- Cantidad -->
+              <div>
+                <label class="block text-gray-700 mb-1">Cantidad:</label>
+                <input
+                  type="number"
+                  id="inputCantidad"
+                  class="w-full border border-gray-300 rounded-lg p-2"
+                  placeholder="Ingrese cantidad"
+                  min="1"
+                  value="1"
+                />
+              </div>
+
+              <!-- Botones -->
+              <div class="flex justify-end gap-3 mt-4">
+                <button
+                  id="btnCancelarAgregar"
+                  class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg"
+                >
+                  Cancelar
+                </button>
+                <button
+                  id="btnConfirmarAgregar"
+                  class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
+                >
+                  Agregar
+                </button>
+              </div>
+            </div>
           </div>
         </main>
 
@@ -395,39 +480,6 @@
             </p>
           </div>
         </div>
-
-        <!-- MODAL REGRESAR PEDIDO -->
-        <div
-          id="modalRegresarPedido"
-          class="fixed inset-0 bg-black/40 hidden items-center justify-center"
-        >
-          <div class="bg-white p-5 rounded-lg w-96 shadow-lg">
-            <h2 class="text-lg font-bold mb-3">Regresar pedido a revisión</h2>
-
-            <label class="block mb-2 text-sm font-semibold">Motivo:</label>
-            <textarea
-              id="motivoRegreso"
-              class="w-full border rounded p-2 text-sm"
-              rows="3"
-              placeholder="Escribe el motivo..."
-            ></textarea>
-
-            <div class="flex justify-end gap-2 mt-4">
-              <button
-                id="btnCancelarRegreso"
-                class="px-3 py-1 bg-gray-300 rounded"
-              >
-                Cancelar
-              </button>
-              <button
-                id="btnConfirmarRegreso"
-                class="px-3 py-1 bg-red-500 text-white rounded"
-              >
-                Regresar
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -438,6 +490,6 @@
     <script src="/js/navar.js" defer></script>
     <script src="/js/header.js" defer></script>
 
-    <script src="/js/DespachoPedido.js" defer></script>
+    <script src="/js/RevisionPedido.js" defer></script>
   </body>
 </html>

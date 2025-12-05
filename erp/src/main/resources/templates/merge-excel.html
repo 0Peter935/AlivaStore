@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fusionar Excels</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100">
+    <div class="max-w-3xl mx-auto mt-10 p-8 bg-white shadow-lg rounded-xl">
+      <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">
+        Fusionar Excels por ID y Estado
+      </h1>
+
+      <!-- Excel 1 -->
+      <div class="mb-6">
+        <label class="block font-semibold mb-2"
+          >Excel Base (BARRACLIEN / ESTADO)</label
+        >
+        <input
+          id="excel1"
+          type="file"
+          class="w-full border border-gray-300 p-2 rounded"
+        />
+      </div>
+
+      <!-- Excel 2 -->
+      <div class="mb-6">
+        <label class="block font-semibold mb-2"
+          >Excel con Estado Actualizado (CODIGO CLIENTE / ESTADO)</label
+        >
+        <input
+          id="excel2"
+          type="file"
+          class="w-full border border-gray-300 p-2 rounded"
+        />
+      </div>
+
+      <!-- Key Base -->
+      <div class="mb-6">
+        <label class="block font-semibold mb-2">Columna ID en Excel Base</label>
+        <input
+          id="keyBase"
+          value="BARRACLIEN"
+          class="w-full border border-gray-300 p-2 rounded"
+        />
+      </div>
+
+      <!-- Key Update -->
+      <div class="mb-6">
+        <label class="block font-semibold mb-2"
+          >Columna ID en Excel Actualizado</label
+        >
+        <input
+          id="keyUpdate"
+          value="CODIGO CLIENTE"
+          class="w-full border border-gray-300 p-2 rounded"
+        />
+      </div>
+
+      <!-- Estado -->
+      <div class="mb-6">
+        <label class="block font-semibold mb-2">Columna Estado</label>
+        <input
+          id="estado"
+          value="ESTADO"
+          class="w-full border border-gray-300 p-2 rounded"
+        />
+      </div>
+
+      <!-- Botón -->
+      <button
+        onclick="mergeExcels()"
+        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg"
+      >
+        Fusionar y Descargar
+      </button>
+
+      <p id="loading" class="text-center text-gray-600 mt-4 hidden">
+        Procesando... por favor espere
+      </p>
+    </div>
+
+    <script>
+      async function mergeExcels() {
+        const excel1 = document.getElementById("excel1").files[0];
+        const excel2 = document.getElementById("excel2").files[0];
+        const keyBase = document.getElementById("keyBase").value;
+        const keyUpdate = document.getElementById("keyUpdate").value;
+        const estado = document.getElementById("estado").value;
+
+        if (!excel1 || !excel2) {
+          alert("Debe seleccionar ambos archivos Excel.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("excel1", excel1);
+        formData.append("excel2", excel2);
+        formData.append("keyBase", keyBase);
+        formData.append("keyUpdate", keyUpdate);
+        formData.append("estado", estado);
+
+        document.getElementById("loading").classList.remove("hidden");
+
+        try {
+          const response = await fetch("http://localhost:8080/excel/merge", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            document.getElementById("loading").classList.add("hidden");
+            alert("Hubo un error: " + (await response.text()));
+            return;
+          }
+
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "resultado.xlsx";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          alert("Hubo un error al procesar los archivos: " + error);
+        }
+
+        document.getElementById("loading").classList.add("hidden");
+      }
+    </script>
+  </body>
+</html>

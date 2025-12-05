@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.store.erp.Models.PedidoDTO;
+import com.store.erp.Models.PedidoLogDTO;
 import com.store.erp.Services.PedidoService;
 
 import java.io.File;
@@ -47,15 +48,39 @@ public class PedidoController {
         }
     }
 
-    @GetMapping("/logistica")
-    public ResponseEntity<List<PedidoDTO>> listarPedidosParaLogistica() {
+    @GetMapping("/vendedor/estado/{estado}")
+    public ResponseEntity<?> listarPedidosPorEstadoVendedor(
+            @PathVariable("estado") int estado,
+            @RequestParam("idUsuario") Integer idUsuario
+    ) {
         try {
-            return ResponseEntity.ok(pedidoService.listarPedidosParaLogistica());
+            if (idUsuario == null) {
+                return ResponseEntity.badRequest().body("El idUsuario es requerido");
+            }
+
+            return ResponseEntity.ok(
+                    pedidoService.listarPedidosPorEstadoyUsuario(estado, idUsuario)
+            );
+
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(500)
+                    .body("Error al obtener pedidos: " + e.getMessage());
         }
     }
+
+
+    @GetMapping("/logistica/estado/{estado}")
+    public ResponseEntity<?> listarPedidosPorEstado(@PathVariable("estado") int estado) {
+        try {
+            return ResponseEntity.ok(pedidoService.listarPedidosPorEstado(estado,null));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error al obtener pedidos: " + e.getMessage());
+        }
+    }
+
+
 
     @GetMapping("/{cod}")
     public ResponseEntity<?> obtenerPedido(@PathVariable("cod") String codPedido) {
@@ -65,6 +90,18 @@ public class PedidoController {
                     .body(Map.of("mensaje", "Pedido no encontrado"));
         return ResponseEntity.ok(pedido);
     }
+
+    @GetMapping("/logs/{codPedido}")
+    public ResponseEntity<?> obtenerLogsPedido(@PathVariable("codPedido") String codPedido) {
+        try {
+            List<PedidoLogDTO> logs = pedidoService.listarlogsPedido(codPedido);
+            return ResponseEntity.ok(logs);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener logs del pedido: " + e.getMessage());
+        }
+    }
+
 
     @PostMapping("/subirEvidencia/{idPedido}")
     public ResponseEntity<?> subirEvidencia(
@@ -108,45 +145,41 @@ public class PedidoController {
         }
     }
 
-    @PostMapping("/guardarPedidoCompleto")
-    public ResponseEntity<?> guardarPedidoCompleto(
-            @RequestPart("pedido") PedidoDTO pedido,
-            @RequestPart(value = "file", required = false) MultipartFile file
-    ) throws JsonProcessingException {
-
-        System.out.println("📦 Pedido recibido: " + new ObjectMapper().writeValueAsString(pedido));
-        System.out.println("🖼️ Archivo: " + (file != null ? file.getOriginalFilename() : "sin archivo"));
-
+    @PostMapping("/regresarPedido")
+    public ResponseEntity<?> regresarPedido(@RequestBody PedidoDTO pedido) {
         try {
-            String evidenciaPath = null;
-
-            // 1️⃣ Guardar evidencia si se envía
-            if (file != null && !file.isEmpty()) {
-                String basePath = "C:\\Users\\picon\\proyectos\\erp\\recursos\\img\\evidencia";
-                File dir = new File(basePath);
-                if (!dir.exists()) dir.mkdirs();
-
-                String extension = Objects.requireNonNull(file.getOriginalFilename())
-                        .substring(file.getOriginalFilename().lastIndexOf("."));
-                String nombreArchivo = pedido.getIdPedido() + extension;
-
-                Path destino = Paths.get(basePath, nombreArchivo);
-                Files.copy(file.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
-
-                // ✅ Guardar solo el nombre del archivo en la BD
-                evidenciaPath = nombreArchivo;
-            }
-
-            // 2️⃣ Setear ruta en DTO
-            pedido.setEvidencia(evidenciaPath);
-
-            // 3️⃣ Actualizar pedido completo (cabecera + detalles)
-            pedidoService.registrarPedidoCompleto(pedido);
+            pedidoService.regresarPedidoRevision(pedido);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Pedido guardado correctamente",
-                    "rutaEvidencia", evidenciaPath
+                    "message", "Pedido regresado a revisión correctamente"
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "message", "Error al regresar el pedido: " + e.getMessage()
+            ));
+        }
+    }
+
+
+    @PostMapping("/guardarPedidoCompleto")
+    public ResponseEntity<?> guardarPedidoCompleto(
+            @RequestPart("pedido") PedidoDTO pedido,
+            @RequestPart(value = "evidencias", required = false) List<MultipartFile> evidencias
+    ) throws JsonProcessingException {
+
+        System.out.println("Pedido recibido: " + new ObjectMapper().writeValueAsString(pedido));
+        System.out.println("Archivos recibidos: " + (evidencias != null ? evidencias.size() : 0));
+
+        try {
+            pedidoService.actualizarPedidoCompleto(pedido, evidencias);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Pedido guardado correctamente"
             ));
         } catch (Exception e) {
             e.printStackTrace();
@@ -154,6 +187,20 @@ public class PedidoController {
                     "success", false,
                     "message", "Error al guardar el pedido: " + e.getMessage()
             ));
+        }
+    }
+
+    @PostMapping("/completar")
+    public ResponseEntity<?> completarPedido(
+            @RequestPart("pedido") PedidoDTO pedido,
+            @RequestPart(value = "evidencias", required = false) List<MultipartFile> evidencias
+    ) {
+        try {
+            pedidoService.completarPedido(pedido, evidencias != null ? evidencias : List.of());
+            return ResponseEntity.ok("Pedido completado");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(e.getMessage());
         }
     }
 
