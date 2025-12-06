@@ -46,11 +46,14 @@ dependencies {
 
 
     // DevTools (recarga en caliente de HTML/JS/CSS y reinicio rápido)
-    //developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     // Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+
+    //Herramientas de prediccion
+    implementation 'com.github.haifengl:smile-core:3.1.1'
 }
 
 

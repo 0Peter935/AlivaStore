@@ -3,11 +3,16 @@ let chartPedidosEstado;
 let chartPedidosVendedor;
 let chartTopProductos;
 let chartVentasLugar;
+let chartAnalisisPredictivo;
 let topProductosData = [];
 
 let Fechainicio;
 let Fechafin;
 let lugar;
+
+$("#btnActualizarPredictivo").on("click", function () {
+  entrenarModeloPredictivo();
+});
 
 function actualizarVariablesGlobales() {
   Fechainicio = $("#fecha_inicio").val();
@@ -15,10 +20,16 @@ function actualizarVariablesGlobales() {
   lugar = $("#filtroLugar").val() || null;
 }
 
+function forceChartsResize() {
+  setTimeout(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, 50);
+}
+
 $(document).ready(function () {
-  // Inicializacipon de filtros
+  // Inicialización de fechas
   const hoy = new Date();
-  const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const primerDia = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
   const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
 
   const formato = (fecha) => fecha.toISOString().split("T")[0];
@@ -26,37 +37,39 @@ $(document).ready(function () {
   $("#fecha_inicio").val(formato(primerDia));
   $("#fecha_fin").val(formato(ultimoDia));
 
-  // Grafico de Estado por Pedido
+  // ================================
+  //   G R Á F I C O S   I N I C I A L E S
+  // ================================
+
   chartPedidosEstado = new ApexCharts(
     document.querySelector("#chartPedidosEstado"),
     {
-      chart: { type: "donut", height: 260 },
+      chart: { type: "donut", height: 350 },
+      legend: { position: "bottom" },
       labels: [],
       series: [],
     }
   );
   chartPedidosEstado.render();
-
-  //Grafido de Pedidos por Fecha
+  forceChartsResize();
 
   chartPedidosTiempo = new ApexCharts(
     document.querySelector("#chartPedidosTiempo"),
     {
       chart: { type: "line", height: 280 },
-      series: [{ name: "Pedidos", data: [10, 20, 30, 40] }],
-      xaxis: { categories: ["Ene", "Feb", "Mar", "Abr"] },
+      series: [{ name: "Pedidos", data: [] }],
+      xaxis: { categories: [] },
       stroke: { width: 3, curve: "smooth" },
     }
   );
   chartPedidosTiempo.render();
+  forceChartsResize();
 
-  //Grafido de Pedidos por Vendedor
   chartPedidosVendedor = new ApexCharts(
     document.querySelector("#chartPedidosVendedor"),
     {
       chart: { type: "bar", height: 260 },
-      series: [{ name: "Pedidos", data: [] }],
-      xaxis: { categories: [] },
+      plotOptions: { bar: { distributed: true } },
       colors: [
         "#3B82F6",
         "#10B981",
@@ -66,66 +79,69 @@ $(document).ready(function () {
         "#06B6D4",
         "#F43F5E",
       ],
+      series: [{ name: "Pedidos", data: [] }],
+      xaxis: { categories: [] },
     }
   );
-
   chartPedidosVendedor.render();
+  forceChartsResize();
 
-  //Grafido de Productos TOP 10
   chartTopProductos = new ApexCharts(
     document.querySelector("#chartTopProductos"),
     {
-      chart: { type: "bar", height: 300 },
+      chart: { type: "bar", height: "100%", width: "100%" },
       plotOptions: {
-        bar: {
-          horizontal: true,
-          distributed: true,
-          borderRadius: 6,
-        },
+        bar: { horizontal: true, distributed: true, borderRadius: 6 },
       },
       series: [{ name: "Unidades", data: [] }],
-
-      // 🔥 NO FORMATEAR LABELS AQUÍ
-      xaxis: {
-        categories: [],
-        labels: { style: { fontSize: "11px" } },
-      },
-      colors: [
-        "#3B82F6",
-        "#10B981",
-        "#F59E0B",
-        "#EF4444",
-        "#8B5CF6",
-        "#06B6D4",
-        "#F43F5E",
-      ],
+      xaxis: { categories: [], labels: { style: { fontSize: "11px" } } },
     }
   );
   chartTopProductos.render();
+  forceChartsResize();
 
   chartVentasLugar = new ApexCharts(
     document.querySelector("#chartVentasLugar"),
     {
       chart: { type: "bar", height: 300 },
       plotOptions: {
-        bar: {
-          horizontal: false,
-          columnWidth: "45%",
-        },
+        bar: { horizontal: false, distributed: true, columnWidth: "45%" },
       },
       xaxis: {
         categories: [],
-        labels: {
-          rotate: -45,
-          style: { fontSize: "11px" },
-        },
+        labels: { rotate: -45, style: { fontSize: "11px" } },
       },
       series: [{ name: "Ventas", data: [] }],
     }
   );
   chartVentasLugar.render();
+  forceChartsResize();
 
-  // Inicializando las funciones
+  // ==========================================
+  //  🔥 GRAFICO ANÁLISIS PREDICTIVO — FIX REAL
+  // ==========================================
+  setTimeout(() => {
+    chartAnalisisPredictivo = new ApexCharts(
+      document.querySelector("#chartAnalisisPredictivo"),
+      {
+        chart: { type: "line", height: "100%", width: "100%" },
+        series: [{ name: "Pedidos proyectados", data: [] }],
+        xaxis: {
+          categories: [],
+          labels: { rotate: -45, style: { fontSize: "10px" } },
+        },
+        stroke: { width: 3, curve: "smooth", dashArray: 4 },
+        noData: { text: "Cargando proyección..." },
+      }
+    );
+
+    chartAnalisisPredictivo.render();
+    forceChartsResize();
+  }, 300); // 👈 ESTA LÍNEA ES LA CLAVE PARA QUE NO SE ROMPA
+
+  // ===============================
+  //   C A R G A R   D A T O S
+  // ===============================
   actualizarVariablesGlobales();
   cargarIndicadoresCards();
   cargarCiudades();
@@ -134,7 +150,13 @@ $(document).ready(function () {
   cargarPedidosVendedor();
   cargarProductosMasVendidos();
   cargarVentasPorDepartamento();
+  entrenarModeloPredictivo();
+  // Redibujar al terminar de cargar todo el layout
+  setTimeout(() => {
+    forceChartsResize();
+  }, 700);
 
+  // Botón aplicar filtro
   $("#btnAplicarFiltro").on("click", function () {
     actualizarVariablesGlobales();
     cargarIndicadoresCards();
@@ -143,6 +165,8 @@ $(document).ready(function () {
     cargarPedidosVendedor();
     cargarProductosMasVendidos();
     cargarVentasPorDepartamento();
+
+    forceChartsResize();
   });
 });
 
@@ -462,91 +486,72 @@ function cargarVentasPorDepartamento() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  // ==============================
-  // ACCIÓN DEL BOTÓN APLICAR FILTRO
-  // ==============================
+function entrenarModeloPredictivo() {
+  console.log("🔄 Entrenando modelo predictivo...");
 
-  function cargarDashboard(inicio, fin, lugar) {
-    console.log("Cargando dashboard:", inicio, fin, lugar);
+  fetch("/api/predictivo/pedidos/entrenar")
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("HTTP " + res.status);
+      }
+      return res.text();
+    })
+    .then((msg) => {
+      console.log("✔ Modelo entrenado:", msg);
+      cargarAnalisisPredictivo();
+    })
+    .catch((err) => {
+      console.error("❌ Error entrenando modelo:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo entrenar el modelo.",
+      });
+    });
+}
 
-    // Cuando tengas API:
-    // fetch(`/api/reportes?inicio=${inicio}&fin=${fin}&lugar=${lugar}`)
-
-    // chartPedidosTiempo.updateSeries([{ data: [10, 14, 20, 35, 40, 60] }]);
-
-    // chartTopProductos.updateSeries([
-    //   { data: [120, 110, 95, 80, 70, 60, 55, 40, 30, 25] },
-    // ]);
-
-    // chartPedidosVendedor.updateSeries([{ data: [80, 70, 65, 55, 40] }]);
-
-    // chartVentasLugar.updateSeries([{ data: [15000, 10000, 8000, 5000, 3000] }]);
-
-    chartAnalisisPredictivo.updateSeries([{ data: [50, 60, 70, 85, 95, 120] }]);
+function cargarAnalisisPredictivo() {
+  // ⛔ Si el gráfico aún no existe, lo esperamos
+  if (!chartAnalisisPredictivo) {
+    console.warn("⏳ Esperando a que chartAnalisisPredictivo exista...");
+    setTimeout(cargarAnalisisPredictivo, 200);
+    return;
   }
 
-  //  GRÁFICOS REALES SEGÚN TU HTML
-  // ============================
+  fetch("/api/predictivo/pedidos/proximo-mes/json")
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("HTTP " + res.status);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      console.log("📊 Datos análisis predictivo:", data);
 
-  // 1) Pedidos por tiempo (lineal)
+      if (!Array.isArray(data)) {
+        console.error("Formato inesperado:", data);
+        chartAnalisisPredictivo.updateOptions({
+          series: [],
+          xaxis: { categories: [] },
+          noData: { text: "Formato inesperado de datos" },
+        });
+        return;
+      }
 
-  // 2) Top 10 productos más vendidos
-  // var chartTopProductos = new ApexCharts(
-  //   document.querySelector("#chartTopProductos"),
-  //   {
-  //     chart: { type: "bar", height: 260 },
-  //     series: [{ name: "Unidades", data: [] }],
-  //     plotOptions: { bar: { horizontal: true, borderRadius: 6 } },
-  //     xaxis: {
-  //       categories: [
-  //         "Prod1",
-  //         "Prod2",
-  //         "Prod3",
-  //         "Prod4",
-  //         "Prod5",
-  //         "Prod6",
-  //         "Prod7",
-  //         "Prod8",
-  //         "Prod9",
-  //         "Prod10",
-  //       ],
-  //     },
-  //   }
-  // );
-  // chartTopProductos.render();
+      const fechas = data.map((d) => d.fecha);
+      const valores = data.map((d) => d.valor);
 
-  // 3) Pedidos por vendedor
-  // var chartPedidosVendedor = new ApexCharts(
-  //   document.querySelector("#chartPedidosVendedor"),
-  //   {
-  //     chart: { type: "bar", height: 260 },
-  //     series: [{ name: "Pedidos", data: [] }],
-  //     xaxis: { categories: ["Juan", "Ana", "Luis", "Karla", "Pedro"] },
-  //     colors: ["#3B82F6"],
-  //   }
-  // );
-  // chartPedidosVendedor.render();
-
-  // 5) Ventas por departamento
-  // var chartVentasLugar = new ApexCharts(
-  //   document.querySelector("#chartVentasLugar"),
-  //   {
-  //     chart: { type: "bar", height: 280 },
-  //     series: [{ name: "Ventas", data: [15000, 10000, 8000, 5000, 3000] }],
-  //     xaxis: { categories: ["Lima", "Arequipa", "Cusco", "Piura", "Junín"] },
-  //   }
-  // );
-  // chartVentasLugar.render();
-
-  // 6) Análisis predictivo
-  var chartAnalisisPredictivo = new ApexCharts(
-    document.querySelector("#chartAnalisisPredictivo"),
-    {
-      chart: { type: "line", height: 280 },
-      series: [{ name: "Proyección", data: [50, 60, 70, 90, 110, 130] }],
-      stroke: { width: 3, curve: "smooth", dashArray: 4 },
-    }
-  );
-  chartAnalisisPredictivo.render();
-});
+      chartAnalisisPredictivo.updateOptions({
+        xaxis: { categories: fechas },
+        series: [{ name: "Pedidos proyectados", data: valores }],
+      });
+    })
+    .catch((err) => {
+      console.error("Error cargando análisis predictivo:", err);
+      chartAnalisisPredictivo.updateOptions({
+        series: [],
+        xaxis: { categories: [] },
+        noData: { text: "Error al cargar datos" },
+      });
+    });
+}

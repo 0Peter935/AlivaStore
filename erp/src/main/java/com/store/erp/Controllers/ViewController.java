@@ -73,7 +73,7 @@ public class ViewController {
 
     @GetMapping("/reporteria/indicadores")
     public String mostrarReporteriaIndicadores() {
-        return "Reporteria"; 
+        return "Reporteria";
     }
 
     @GetMapping("/excel/merge-ui")

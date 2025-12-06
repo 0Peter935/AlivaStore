@@ -44,8 +44,7 @@ public class UsuarioController {
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of(
-                    "mensaje", e.getMessage()
-            ));
+                    "mensaje", e.getMessage()));
         }
     }
 
@@ -54,7 +53,6 @@ public class UsuarioController {
         usuarioService.registrarUsuario(usuario);
         return ResponseEntity.ok("Usuario registrado correctamente");
     }
-
 
     @PutMapping("/{id}/actualizar")
     public ResponseEntity<String> actualizarUsuario(
@@ -82,6 +80,22 @@ public class UsuarioController {
     public ResponseEntity<?> actualizarPerfil(@RequestBody UsuarioDTO usuario) {
         usuarioService.actualizarPerfil(usuario);
         return ResponseEntity.ok("Perfil actualizado correctamente");
+    }
+
+    @PostMapping("/cambiar-password")
+    public ResponseEntity<?> cambiarPassword(@RequestBody Map<String, Object> body) {
+        try {
+            Integer idUsuario = (Integer) body.get("idUsuario");
+            String nueva = (String) body.get("nuevaClave");
+            String confirmar = (String) body.get("confirmarClave");
+
+            usuarioService.cambiarPassword(idUsuario, nueva, confirmar);
+
+            return ResponseEntity.ok("Contraseña actualizada correctamente");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
     }
 
 }

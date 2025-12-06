@@ -15,7 +15,8 @@ public class Mappers extends RepoUtils {
     // Mapeo de EMPRESA DE ENTREGA
     // =====================================================
     public static EmpresaEntregaDTO mapEmpresaEntrega(ResultSet rs) throws SQLException {
-        if (!hasColumn(rs, "ID_EMPRESA_ENTREGA")) return null;
+        if (!hasColumn(rs, "ID_EMPRESA_ENTREGA"))
+            return null;
         EmpresaEntregaDTO e = new EmpresaEntregaDTO();
         e.setIdEmpresaEntrega(safeInt(rs, "ID_EMPRESA_ENTREGA"));
         e.setRazonSocial(safeString(rs, "RAZON_SOCIAL"));
@@ -35,33 +36,35 @@ public class Mappers extends RepoUtils {
     // Mapeo de ZONA DE EMPRESA DE ENTREGA
     // =====================================================
     public static ZonaEmpresaEntregaDTO mapZona(ResultSet rs) throws SQLException {
-        if (!hasColumn(rs, "ID_ZONA") && !hasColumn(rs, "ID")) return null;
+        if (!hasColumn(rs, "ID_ZONA") && !hasColumn(rs, "ID"))
+            return null;
 
         return new ZonaEmpresaEntregaDTO(
-            hasColumn(rs, "ID_ZONA") ? safeInt(rs, "ID_ZONA") : safeInt(rs, "ID"),
-            hasColumn(rs, "DESC_ZONA") ? safeString(rs, "DESC_ZONA") : safeString(rs, "DESCRIPCION")
-        );
+                hasColumn(rs, "ID_ZONA") ? safeInt(rs, "ID_ZONA") : safeInt(rs, "ID"),
+                hasColumn(rs, "DESC_ZONA") ? safeString(rs, "DESC_ZONA") : safeString(rs, "DESCRIPCION"));
     }
 
     // =====================================================
     // Mapeo de TIPO DE ALMACEN
     // =====================================================
     public static TipoAlmacenDTO mapTipoAlmacen(ResultSet rs) throws SQLException {
-        if (!hasColumn(rs, "ID_TIPO_ALMACEN")) return null;
+        if (!hasColumn(rs, "ID_TIPO_ALMACEN"))
+            return null;
         return new TipoAlmacenDTO(
-            safeInt(rs, "ID_TIPO_ALMACEN"),
-            safeString(rs, "DESC_TIPO_ALMACEN")
-        );
+                safeInt(rs, "ID_TIPO_ALMACEN"),
+                safeString(rs, "DESC_TIPO_ALMACEN"));
     }
 
     // =====================================================
     // Mapeo de ALMACEN
     // =====================================================
     public static AlmacenDTO mapAlmacen(ResultSet rs) throws SQLException {
-        if (!hasColumn(rs, "ID_ALMACEN")) return null;
+        if (!hasColumn(rs, "ID_ALMACEN"))
+            return null;
         AlmacenDTO a = new AlmacenDTO();
         a.setIdAlmacen(safeInt(rs, "ID_ALMACEN"));
-        a.setDescripcion(safeString(rs, "DESC_ALMACEN") != null ? safeString(rs, "DESC_ALMACEN") : safeString(rs, "NOMBRE_ALMACEN"));
+        a.setDescripcion(safeString(rs, "DESC_ALMACEN") != null ? safeString(rs, "DESC_ALMACEN")
+                : safeString(rs, "NOMBRE_ALMACEN"));
         a.setEmpresaEntrega(mapEmpresaEntrega(rs));
         a.setTipoAlmacen(mapTipoAlmacen(rs));
         return a;
@@ -124,9 +127,8 @@ public class Mappers extends RepoUtils {
         u.setFechaRegistro(safeDate(rs, "FECHA_REGISTRO"));
 
         RolDTO rol = new RolDTO(
-            safeInt(rs, "ID_ROL"),
-            safeString(rs, "ROL_DESC")
-        );
+                safeInt(rs, "ID_ROL"),
+                safeString(rs, "ROL_DESC"));
 
         u.setRol(rol);
         return u;
@@ -136,12 +138,12 @@ public class Mappers extends RepoUtils {
     // Mapeo de ROL
     // =====================================================
     public static RolDTO mapRol(ResultSet rs) throws SQLException {
-        if (!hasColumn(rs, "ID_ROL")) return null;
+        if (!hasColumn(rs, "ID_ROL"))
+            return null;
 
         RolDTO rol = new RolDTO(
                 safeInt(rs, "ID_ROL"),
-                safeString(rs, "DESCRIPCION")
-            );
+                safeString(rs, "DESCRIPCION"));
         return rol;
     }
 
@@ -163,7 +165,7 @@ public class Mappers extends RepoUtils {
         c.setPais(safeString(rs, "PAIS"));
         c.setFechaReg(safeOffsetDateTime(rs, "FECHA_REGISTRO"));
         c.setFechaAct(safeLocalDateTime(rs, "FECHA_ACTUALIZACION"));
-        
+
         return c;
     }
 
@@ -193,13 +195,13 @@ public class Mappers extends RepoUtils {
     // Mapeo de STOCK EN ALMACEN
     // =====================================================
     public static AlmacenStockDTO mapAlmacenStock(ResultSet rs) throws SQLException {
-        if (!hasColumn(rs, "ID_ALMACEN_STOCK")) return null;
+        if (!hasColumn(rs, "ID_ALMACEN_STOCK"))
+            return null;
         return new AlmacenStockDTO(
-            safeInt(rs, "ID_ALMACEN_STOCK"),
-            safeString(rs, "COD_VARIANTE"),
-            safeInt(rs, "INVENTARIO"),
-            mapAlmacen(rs)
-        );
+                safeInt(rs, "ID_ALMACEN_STOCK"),
+                safeString(rs, "COD_VARIANTE"),
+                safeInt(rs, "INVENTARIO"),
+                mapAlmacen(rs));
     }
 
     // =====================================================
@@ -274,9 +276,9 @@ public class Mappers extends RepoUtils {
         return n;
     }
 
-    ///====================================================
+    /// ====================================================
     /// Mapeo de EVIDENCIA DE PEDIDO
-    ///====================================================
+    /// ====================================================
     public static PedidoEvidenciaDTO mapEvidenciaPedido(ResultSet rs) throws SQLException {
         PedidoEvidenciaDTO e = new PedidoEvidenciaDTO();
 
@@ -288,9 +290,9 @@ public class Mappers extends RepoUtils {
         return e;
     }
 
-    //=====================================================
+    // =====================================================
     // Mapeo de LOG DE PEDIDO
-    //=====================================================
+    // =====================================================
     public static PedidoLogDTO mapPedidoLog(ResultSet rs) throws SQLException {
         PedidoLogDTO l = new PedidoLogDTO();
 
@@ -360,7 +362,7 @@ public class Mappers extends RepoUtils {
                 pedido.getNotas().add(mapNotaPedido(rs));
             }
         }
-        
+
         return pedido;
     }
 
@@ -465,14 +467,27 @@ public class Mappers extends RepoUtils {
         r.setTotalPedidos(safeInt(rs, "TOTAL_PEDIDOS"));
         return r;
     }
-    
+
+    public static PedidoPredictivoDTO mapAnalisisPredictivoPedidos(ResultSet rs) throws SQLException {
+        PedidoPredictivoDTO dto = new PedidoPredictivoDTO();
+
+        dto.setFecha(safeDate(rs, "FECHA"));
+        dto.setTotalPedidos(safeInt(rs, "TOTAL_PEDIDOS"));
+        dto.setDiaSemana(rs.getInt("DIA_SEMANA"));
+        dto.setMes(rs.getInt("MES"));
+        dto.setDiaAnio(rs.getInt("DIA_ANIO"));
+
+        return dto;
+    }
+
     // UTILS
 
     public static UtilsDTO.ListarCiudad mapListarCiudad(ResultSet rs) throws SQLException {
-        UtilsDTO.ListarCiudad lc= new UtilsDTO.ListarCiudad();
+        UtilsDTO.ListarCiudad lc = new UtilsDTO.ListarCiudad();
 
         lc.setCiudad(safeString(rs, "CIUDAD"));
 
         return lc;
     }
+
 }

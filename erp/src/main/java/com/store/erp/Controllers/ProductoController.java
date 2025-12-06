@@ -1,6 +1,5 @@
 package com.store.erp.Controllers;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +44,8 @@ public class ProductoController {
     }
 
     @PutMapping("/{id}/regalo")
-    public ResponseEntity<?> actualizarRegalo(@PathVariable("id") int idProducto, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> actualizarRegalo(@PathVariable("id") int idProducto,
+            @RequestBody Map<String, Object> body) {
         try {
             boolean regalo = Boolean.parseBoolean(body.get("regalo").toString());
             productoService.actualizarRegalo(idProducto, regalo);
@@ -54,7 +54,7 @@ public class ProductoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Error al actualizar regalo", "details", e.getMessage()));
         }
-        
+
     }
 
     @PutMapping("/{id}/estado")
@@ -65,7 +65,7 @@ public class ProductoController {
             boolean estado = Boolean.parseBoolean(body.get("estado").toString());
 
             ProductoDTO producto = productoService.obtenerPorId(idProducto);
-            
+
             if (producto == null)
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "Producto no encontrado"));
@@ -73,6 +73,7 @@ public class ProductoController {
             // Actualizar en Shopify
             boolean ok = shopifyService.actualizarEstadoProducto(producto, estado);
             System.out.println("Respuesta Shopify OK? " + ok);
+            // boolean ok = true;
 
             // Actualizar en la BD
             productoService.cambiarEstado(producto.getIdProducto(), estado);

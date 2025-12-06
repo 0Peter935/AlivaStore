@@ -193,6 +193,76 @@ function cerrarModal(id) {
   if (modal) modal.classList.add("hidden");
 }
 
+// ============================
+//  FORMULARIO CAMBIAR PASSWORD
+// ============================
+document.getElementById("btnGuardarPassword").addEventListener("click", async () => {
+
+  const usuario = JSON.parse(sessionStorage.getItem("usuario"));
+  if (!usuario) return Swal.fire("Error", "No hay sesión activa", "error");
+
+  const pass1 = document.getElementById("pwNueva").value.trim();
+  const pass2 = document.getElementById("pwConfirmar").value.trim();
+
+  if (!pass1 || !pass2)
+    return Swal.fire("Advertencia", "Todos los campos son obligatorios", "warning");
+
+  if (pass1 !== pass2)
+    return Swal.fire("Error", "Las contraseñas no coinciden", "error");
+
+  const data = {
+    idUsuario: usuario.idUsuario,
+    nuevaClave: pass1
+  };
+
+  try {
+    const resp = await fetch("/api/usuarios/cambiar-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+
+    if (!resp.ok) throw new Error(await resp.text());
+
+    Swal.fire({
+      icon: "success",
+      title: "Contraseña actualizada",
+      timer: 1500,
+      showConfirmButton: false
+    });
+
+    // Actualizar sessionStorage
+    usuario.clave = pass1;
+    sessionStorage.setItem("usuario", JSON.stringify(usuario));
+
+    cerrarModal("modalCambiarPassword");
+
+  } catch (err) {
+    Swal.fire("Error", err.message, "error");
+  }
+});
+
+
+document.addEventListener("click", (e) => {
+  if (e.target.closest("[data-toggle]")) {
+    const inputId = e.target.closest("[data-toggle]").dataset.toggle;
+    const input = document.getElementById(inputId);
+    const icon = e.target.closest("button").querySelector("i");
+
+    if (input.type === "password") {
+      input.type = "text";
+      icon.classList.remove("fa-eye");
+      icon.classList.add("fa-eye-slash");
+    } else {
+      input.type = "password";
+      icon.classList.remove("fa-eye-slash");
+      icon.classList.add("fa-eye");
+    }
+  }
+});
+
+
+
 function actualizarHeader(usuario) {
   const userNombre = document.getElementById("userNombre");
   const userRol = document.getElementById("userRol");

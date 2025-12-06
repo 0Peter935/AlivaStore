@@ -391,7 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // -----------------------------------------
   window.DespachoPedido = (codPedido) => {
     localStorage.setItem("pedidoSeleccionado", codPedido);
-    window.location.href = "/pedidos/despacho";
+    window.location.href = "/pedidos/editar";
   };
 
   // -----------------------------------------

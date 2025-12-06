@@ -213,113 +213,80 @@
 </div>
 
 <div
-  id="changePasswordModal"
-  class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+  id="modalCambiarPassword"
+  class="modal-overlay fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50"
 >
-  <div class="bg-white rounded-lg shadow-2xl w-full max-w-md mx-4 p-6 relative">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">Cambiar Contraseña</h2>
-      <button
-        data-modal-close="changePasswordModal"
-        class="text-gray-400 hover:text-gray-600 transition-colors"
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center pb-4 border-b">
+      <h2 class="text-xl font-semibold text-gray-800">Cambiar contraseña</h2>
+      <button 
+        class="text-gray-500 hover:text-gray-700"
+        data-modal-close="modalCambiarPassword"
       >
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-          <path
-            fill-rule="evenodd"
-            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-            clip-rule="evenodd"
-          />
-        </svg>
+        <i class="fa-solid fa-xmark text-xl"></i>
       </button>
     </div>
 
-    <form id="changePasswordForm" class="space-y-6">
+    <!-- Form -->
+    <div class="mt-4 space-y-5">
+      
+      <!-- Nueva contraseña -->
       <div>
-        <label
-          for="newPassword"
-          class="block text-sm font-medium text-gray-700 mb-2"
-          >Contraseña Nueva:</label
-        >
-        <div class="relative">
+        <label class="text-sm font-medium text-gray-700">Nueva contraseña</label>
+        <div class="relative mt-1">
           <input
             type="password"
-            id="newPassword"
-            name="newPassword"
-            placeholder=""
-            class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+            id="pwNueva"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-aliva-purple focus:border-aliva-purple"
           />
-          <button
+          <button 
             type="button"
-            onclick="togglePassword('newPassword', 'eyeIcon1')"
-            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-aliva-purple hover:text-aliva-blue transition-colors"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-aliva-purple"
+            data-toggle="pwNueva"
           >
-            <svg
-              id="eyeIcon1"
-              class="w-5 h-5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-              <path
-                fill-rule="evenodd"
-                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                clip-rule="evenodd"
-              />
-            </svg>
+            <i class="fa-solid fa-eye"></i>
           </button>
         </div>
       </div>
 
+      <!-- Confirmar contraseña -->
       <div>
-        <label
-          for="confirmPassword"
-          class="block text-sm font-medium text-gray-700 mb-2"
-          >Confirmar Contraseña:</label
-        >
-        <div class="relative">
+        <label class="text-sm font-medium text-gray-700">Confirmar contraseña</label>
+        <div class="relative mt-1">
           <input
             type="password"
-            id="confirmPassword"
-            name="confirmPassword"
-            placeholder=""
-            class="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-aliva-purple focus:border-transparent transition-all"
+            id="pwConfirmar"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-aliva-purple focus:border-aliva-purple"
           />
-          <button
+          <button 
             type="button"
-            onclick="togglePassword('confirmPassword', 'eyeIcon2')"
-            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-aliva-purple hover:text-aliva-blue transition-colors"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-aliva-purple"
+            data-toggle="pwConfirmar"
           >
-            <svg
-              id="eyeIcon2"
-              class="w-5 h-5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-              <path
-                fill-rule="evenodd"
-                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                clip-rule="evenodd"
-              />
-            </svg>
+            <i class="fa-solid fa-eye"></i>
           </button>
         </div>
       </div>
 
-      <div class="flex justify-end gap-4 pt-4 border-t">
-        <button
-          data-modal-close="changePasswordModal"
-          class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+      <!-- Botones -->
+      <div class="flex justify-end gap-3 pt-4 border-t">
+        <button 
+          data-modal-close="modalCambiarPassword"
+          class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100"
         >
           Cancelar
         </button>
-        <button
-          type="submit"
-          class="px-6 py-2 bg-aliva-purple hover:bg-aliva-blue text-white rounded-lg transition-colors"
+
+        <button 
+          id="btnGuardarPassword"
+          class="px-5 py-2 bg-aliva-purple hover:bg-aliva-blue text-white rounded-lg"
         >
           Guardar
         </button>
       </div>
-    </form>
+
+    </div>
   </div>
 </div>

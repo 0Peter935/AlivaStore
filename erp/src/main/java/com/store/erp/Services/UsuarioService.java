@@ -33,7 +33,6 @@ public class UsuarioService {
         return usuarioRepo.registrarUsuario(usuario);
     }
 
-
     public void actualizarUsuario(UsuarioDTO usuario) {
         usuarioRepo.actualizarUsuario(usuario);
     }
@@ -44,6 +43,23 @@ public class UsuarioService {
 
     public void actualizarPerfil(UsuarioDTO u) {
         usuarioRepo.actualizarPerfil(u);
+    }
+
+    public void cambiarPassword(Integer idUsuario, String nuevaClave, String confirmar) throws Exception {
+
+        if (idUsuario == null) {
+            throw new Exception("ID de usuario inválido");
+        }
+
+        if (nuevaClave == null || nuevaClave.isBlank()) {
+            throw new Exception("La nueva contraseña no puede estar vacía");
+        }
+
+        if (!nuevaClave.equals(confirmar)) {
+            throw new Exception("Las contraseñas no coinciden");
+        }
+
+        usuarioRepo.cambiarPassword(idUsuario, nuevaClave);
     }
 
 }
