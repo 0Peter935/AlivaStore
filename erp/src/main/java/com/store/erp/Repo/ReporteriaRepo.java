@@ -11,11 +11,13 @@ import org.springframework.stereotype.Repository;
 
 import com.store.erp.Models.PedidoPredictivoDTO;
 import com.store.erp.Models.ReporteIndicadoresCardsDTO;
+import com.store.erp.Models.ReportePedidoTiempoPromedioDTO;
 import com.store.erp.Models.ReportePedidosDepartamentoDTO;
 import com.store.erp.Models.ReportePedidosEstadoDTO;
 import com.store.erp.Models.ReportePedidosFechaDTO;
 import com.store.erp.Models.ReportePedidosVendedorDTO;
 import com.store.erp.Models.ReporteProductosVendidosDTO;
+import com.store.erp.Models.ReporteErrorDespachoDTO;
 import com.store.erp.Repo.Mappers;
 
 import java.util.List;
@@ -75,6 +77,22 @@ public class ReporteriaRepo {
                 (rs, rowNum) -> Mappers.mapReportePedidosDepartamento(rs));
     }
 
+    public List<ReportePedidoTiempoPromedioDTO> obtenerPromedioPedidos() {
+
+        return jdbcTemplate.query(
+                "EXEC SP_REPORTE_PEDIDOS_PROMEDIO",
+                new Object[] {},
+                (rs, rowNum) -> Mappers.mapReportePedidoPromedio(rs));
+    }
+
+    public List<ReporteErrorDespachoDTO> obtenerErrorDespacho(Date fechaInicio, Date fechaFin) {
+
+        return jdbcTemplate.query(
+                "EXEC SP_REPORTE_DESPACHO_ERROR ?, ?",
+                new Object[] { fechaInicio, fechaFin },
+                (rs, rowNum) -> Mappers.mapReporteErrorDespacho(rs));
+    }
+    
     public List<PedidoPredictivoDTO> obtenerDatasetPredictivo() {
 
         String sql = """

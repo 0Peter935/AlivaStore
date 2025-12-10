@@ -4,12 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.store.erp.Models.ReporteIndicadoresCardsDTO;
+import com.store.erp.Models.ReportePedidoTiempoPromedioDTO;
 import com.store.erp.Models.ReportePedidosDepartamentoDTO;
 import com.store.erp.Models.ReportePedidosEstadoDTO;
 import com.store.erp.Models.ReportePedidosFechaDTO;
 import com.store.erp.Models.ReportePedidosVendedorDTO;
 import com.store.erp.Models.ReporteProductosVendidosDTO;
 import com.store.erp.Repo.ReporteriaRepo;
+import com.store.erp.Models.ReporteErrorDespachoDTO;
 
 import java.sql.Date;
 import java.util.List;
@@ -42,5 +44,13 @@ public class ReporteriaService {
 
     public List<ReportePedidosDepartamentoDTO> ObtenerPedidosDepartamento(Date fechaInicio, Date fechaFin) {
         return reporteriaRepo.obtenerPedidosDepartamento(fechaInicio, fechaFin);
+    }
+
+    public List<ReportePedidoTiempoPromedioDTO> obtenerPromedioPedidos() {
+        return reporteriaRepo.obtenerPromedioPedidos();
+    }
+
+    public List<ReporteErrorDespachoDTO> ObtenerPorcentajeErrorDespacho(Date fechaInicio, Date fechaFin) {
+        return reporteriaRepo.obtenerErrorDespacho(fechaInicio, fechaFin);
     }
 }

@@ -150,6 +150,8 @@ $(document).ready(function () {
   cargarPedidosVendedor();
   cargarProductosMasVendidos();
   cargarVentasPorDepartamento();
+  cargarPromedioPedidos();
+  cargarDespachoError();
   entrenarModeloPredictivo();
   // Redibujar al terminar de cargar todo el layout
   setTimeout(() => {
@@ -165,7 +167,8 @@ $(document).ready(function () {
     cargarPedidosVendedor();
     cargarProductosMasVendidos();
     cargarVentasPorDepartamento();
-
+    cargarPromedioPedidos();
+    cargarDespachoError();
     forceChartsResize();
   });
 });
@@ -482,6 +485,65 @@ function cargarVentasPorDepartamento() {
     },
     error: function () {
       console.error("Error obteniendo ventas por departamento");
+    },
+  });
+}
+
+function cargarPromedioPedidos() {
+  $.ajax({
+    url: "/api/reporte/pedidos-promedio",
+    type: "GET",
+
+    success: function (response) {
+      const data = response[0];
+
+      if (!data) {
+        console.error("La respuesta está vacía o no contiene datos.");
+        $("#promedioTotal").text("Sin Data");
+        return;
+      }
+
+      // 🚨 2. USAR LOS NOMBRES DE CLAVE CORRECTOS
+      const paHoras = parseFloat(data.promedio_P_A).toFixed(2);
+      const aeHoras = parseFloat(data.promedio_P_E).toFixed(2);
+      const totalHoras = parseFloat(data.promedio_Pedido).toFixed(2);
+
+      // 3. Actualizar el DOM
+      $("#promedioPA").text(paHoras + " hrs");
+      $("#promedioAE").text(aeHoras + " hrs");
+      $("#promedioTotal").text(totalHoras + " hrs");
+    },
+    error: function () {
+      console.error("Error obteniendo promedios");
+      $("#promedioTotal").text("Error");
+    },
+  });
+}
+
+function cargarDespachoError() {
+  $.ajax({
+    url: "/api/reporte/despacho-error",
+    type: "GET",
+    data: {
+      inicio: Fechainicio,
+      fin: Fechafin,
+    },
+    success: function (response) {
+      const data = response[0];
+
+      if (!data) {
+        $("#promedioErrorDespacho").text("Sin Data");
+        return;
+      }
+      const promedioError = parseFloat(data.porcentaje_Error_Despacho).toFixed(
+        2
+      );
+
+      $("#promedioErrorDespacho").text(promedioError + " %");
+    },
+    error: function () {
+      console.error("Error obteniendo promedios");
+      $("#promedioErrorDespacho").text("Error");
     },
   });
 }

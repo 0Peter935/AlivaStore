@@ -136,4 +136,33 @@ public class ReporteriaController {
                 .body(Map.of("error", e.getMessage()));
         }
     }
+
+    @GetMapping("/pedidos-promedio")
+    public ResponseEntity<?> obtenerPedidoPromedio(
+    ) {
+        try {
+            return ResponseEntity.ok(
+                reporteriaService.obtenerPromedioPedidos()
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/despacho-error")
+    public ResponseEntity<?> obtenerDespachoErrorPromedio(
+             @RequestParam("inicio") Date inicio,
+            @RequestParam("fin") Date fin
+    ) {
+        try {
+            return ResponseEntity.ok(
+                reporteriaService.ObtenerPorcentajeErrorDespacho(inicio, fin)
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
+        }
+    }
+
 }

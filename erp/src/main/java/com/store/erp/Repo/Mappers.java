@@ -468,6 +468,25 @@ public class Mappers extends RepoUtils {
         return r;
     }
 
+    public static ReportePedidoTiempoPromedioDTO mapReportePedidoPromedio(ResultSet rs) throws SQLException {
+        ReportePedidoTiempoPromedioDTO dto = new ReportePedidoTiempoPromedioDTO();
+
+        dto.setPromedio_P_A(rs.getDouble("Promedio_P_A")); 
+        dto.setPromedio_P_E(rs.getDouble("Promedio_P_E"));
+        dto.setPromedio_Pedido(rs.getDouble("Promedio_Total_Suma")); 
+
+        return dto;
+    }
+
+    public static ReporteErrorDespachoDTO mapReporteErrorDespacho(ResultSet rs) throws SQLException {
+    ReporteErrorDespachoDTO dto = new ReporteErrorDespachoDTO();
+
+    dto.setCantidad_Pedidos_Estado(rs.getInt("Cantidad_Pedidos_Error")); 
+    dto.setPorcentaje_Error_Despacho(rs.getDouble("Porcentaje_Error_Despacho"));
+
+    return dto;
+}
+
     public static PedidoPredictivoDTO mapAnalisisPredictivoPedidos(ResultSet rs) throws SQLException {
         PedidoPredictivoDTO dto = new PedidoPredictivoDTO();
 
